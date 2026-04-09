@@ -2,14 +2,15 @@
 
 ## 1. entrada, leitura, hash
 
-- [X] **1.1** – Verificar se `Tipo_Digest` é MD5, SHA1, SHA256 ou SHA512.
-- [X] **1.2** – Confirmar que `Caminho_da_Pasta` existe e é uma pasta.
-- [ ] **1.3** – Listar todos os arquivos da pasta (ignorar subpastas).
-- [ ] **1.4** – Para cada arquivo, calcular o hash com `MessageDigest` (ler em blocos de 8KB).
-- [ ] **1.5** – Converter o hash para hexadecimal minúsculo e guardar num mapa (nome → hash).
-- [ ] **1.6** – Se o arquivo XML não existir, criar um novo documento com raiz `<CATALOG>`.
-- [ ] **1.7** – Ler o XML (se existir) e extrair um mapa: nome_arquivo → (tipo → hash).
-- [ ] **1.8** – Tratar erros: algoritmo inválido, problemas de leitura do XML, e fechar recursos (try-with-resources).
+- [X] **1.1** – Validar os 3 argumentos; se faltar, mostrar ajuda e sair.
+- [X] **1.2** – Verificar se `Tipo_Digest` é MD5, SHA1, SHA256 ou SHA512.
+- [X] **1.3** – Confirmar que `Caminho_da_Pasta` existe e é uma pasta.
+- [ ] **1.4** – Listar todos os arquivos da pasta (ignorar subpastas).
+- [ ] **1.5** – Para cada arquivo, calcular o hash com `MessageDigest` (ler em blocos de 8KB).
+- [ ] **1.6** – Converter o hash para hexadecimal minúsculo e guardar num mapa (nome → hash).
+- [ ] **1.7** – Se o arquivo XML não existir, criar um novo documento com raiz `<CATALOG>`.
+- [ ] **1.8** – Ler o XML (se existir) e extrair um mapa: nome_arquivo → (tipo → hash).
+- [ ] **1.9** – Tratar erros: algoritmo inválido, problemas de leitura do XML, e fechar recursos (try-with-resources).
 
 ## 2. comparação, status, XML de saída
 
