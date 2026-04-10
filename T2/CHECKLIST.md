@@ -5,7 +5,7 @@
 - [X] **1.1** – Validar os 3 argumentos; se faltar, mostrar ajuda e sair.
 - [X] **1.2** – Verificar se `Tipo_Digest` é MD5, SHA1, SHA256 ou SHA512.
 - [X] **1.3** – Confirmar que `Caminho_da_Pasta` existe e é uma pasta.
-- [ ] **1.4** – Listar todos os arquivos da pasta (ignorar subpastas).
+- [X] **1.4** – Listar todos os arquivos da pasta (ignorar subpastas).
 - [ ] **1.5** – Para cada arquivo, calcular o hash com `MessageDigest` (ler em blocos de 8KB).
 - [ ] **1.6** – Converter o hash para hexadecimal minúsculo e guardar num mapa (nome → hash).
 - [ ] **1.7** – Se o arquivo XML não existir, criar um novo documento com raiz `<CATALOG>`.

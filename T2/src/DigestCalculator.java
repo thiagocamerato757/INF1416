@@ -3,7 +3,7 @@ import java.io.File;
 /**
  * PUC-Rio – INF1416 – Segurança da Informação
  * 2212580 - Thiago Pereira Camerato
- * XXXXXXX -  XXXXXXXXXXXXXXXXXXXXXX
+ * 2212763 - Arthur Augusto Claro Sardella
  */
 public class DigestCalculator {
 
@@ -48,6 +48,9 @@ public class DigestCalculator {
                 System.exit(1);
             }
 
+            // DEBUG LISTA DE ARQUIVOS
+            ShowFileList(arquivosParaProcessar);
+
             // 4. ESTRUTURA PARA CONTROLE DE COLISÃO LOCAL
             // - Armazenar os digests dos arquivos que
             //   estão na pasta e detectar se dois arquivos diferentes geram o mesmo hash.
@@ -85,5 +88,14 @@ public class DigestCalculator {
             System.err.println("Ocorreu um erro inesperado: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    /**
+    * Função auxiliar que imprime a lista de arquivos a serem processados
+    */
+    static void ShowFileList(File[] files) {
+        for (File file : files)
+            if (!file.isDirectory())
+                System.out.println(file.getName());
     }
 }
