@@ -32,7 +32,7 @@ public class DigestCalculator {
 
             // 2. INICIALIZAÇÃO DA PERSISTÊNCIA (XMLManager)
             // - Carregar o arquivo XML em memória usando DOM.
-            // XMLManager xmlManager = new XMLManager(caminhoXML);
+            XMLManager xmlManager = new XMLManager(caminhoXML);
 
             // 3. MAPEAMENTO DA PASTA DE ARQUIVOS
             // - Acessar a pasta fornecida e listar todos os arquivos presentes.
