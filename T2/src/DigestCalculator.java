@@ -76,20 +76,20 @@ public class DigestCalculator {
                 // 5.3 DETERMINAR STATUS (StatusEngine)
                 // - Comparar hashCalculado com o XML.
                 // - Verificar colisões (no XML e na lista de digests da pasta).
-                // Status status = StatusEngine.determine(arquivo.getName(), hashCalculado, xmlManager, digestsDaPasta);
+                Status status = StatusEngine.determine(file.getName(), digestType, calculatedHash, xmlManager);
 
                 // 5.4 IMPRIMIR RESULTADO NO FORMATO PADRÃO
-                // System.out.println(arquivo.getName() + " " + tipoDigest + " " + hashCalculado + " (" + status + ")");
+                System.out.println(file.getName() + " " + digestType + " " + calculatedHash + " (" + status + ")");
 
                 // 5.5 ARMAZENAR PARA ATUALIZAÇÃO POSTERIOR
                 // - Se status for NOT FOUND, agendar para inserção no XML.
                 // - Se status for COLISION, ignorar atualização.
-                // if (status == Status.NOT_FOUND) { xmlManager.addEntry(...); }
+                if (status == Status.NOT_FOUND) { xmlManager.addNewEntry(file.getName(), digestType, calculatedHash); }
             }
 
             // 6. FINALIZAÇÃO E GRAVAÇÃO
             // - Se houve novos registros (NOT FOUND), salvar o XML mantendo a estrutura original.
-            // xmlManager.save();
+            xmlManager.save();
 
         } catch (Exception e) {
             System.err.println("Ocorreu um erro inesperado (" + e.getClass().getSimpleName() + "): " + e.getMessage());

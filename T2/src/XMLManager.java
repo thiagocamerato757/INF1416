@@ -5,6 +5,10 @@ import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 
 /*
@@ -139,6 +143,22 @@ public class XMLManager {
         }
 
         return false;
+    }
+
+    /**
+     * Saves the XML as a file
+     */
+    public void save() {
+        try {
+            Transformer transformer = TransformerFactory
+                    .newInstance().newTransformer();
+            transformer.transform(
+                    new DOMSource(xmlDoc),
+                    new StreamResult(XMLfile)
+            );
+        } catch (Exception e) {
+            System.err.println("Error saving XML: " + e.getMessage());
+        }
     }
 
     /**
