@@ -6,7 +6,6 @@ import org.w3c.dom.NodeList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
-import java.util.Map;
 
 /*
  * PUC-Rio – INF1416 – Segurança da Informação
@@ -15,7 +14,7 @@ import java.util.Map;
  */
 
 /**
- * Classe que gerencia o arquivo XML
+ * Handles loading and querying the digest catalog XML document.
  */
 public class XMLManager {
     DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -23,8 +22,16 @@ public class XMLManager {
     Document xmlDoc;
     File XMLfile = null;
 
-    public XMLManager(String caminhoXML) {
-        XMLfile = new File(caminhoXML);
+    /**
+     * Builds an XML manager from a catalog path.
+     * <p>
+     * If the file does not exist, a new in-memory document with a {@code CATALOG}
+     * root element is created.
+     *
+     * @param xmlPath path to the digest catalog XML file
+     */
+    public XMLManager(String xmlPath) {
+        XMLfile = new File(xmlPath);
         try {
             docBuilder = docBuilderFactory.newDocumentBuilder();
             if (XMLfile.createNewFile()) {
@@ -40,13 +47,14 @@ public class XMLManager {
     }
 
     /**
-     * Adiciona novo Digest Entry caso o arquivo exista na base, mas não possui aquele tipo de digest registrado.
-     * <p></p>
-     * Cria um novo File Entry caso o arquivo não exista na base e registra o digest.
+     * Adds a digest entry for a file in the XML catalog.
+     * <p>
+     * If the file entry does not exist, it is created. The digest entry is then
+     * appended with the provided type and hash.
      *
-     * @param name Nome do arquivo
-     * @param DigestType Tipo do digest
-     * @param DigestHex Hash Hex do digest
+     * @param name file name (without path)
+     * @param DigestType digest algorithm type
+     * @param DigestHex digest value in hexadecimal format
      */
     public void addNewEntry(String name, String DigestType, String DigestHex) {
         Element root = xmlDoc.getDocumentElement();
@@ -73,17 +81,14 @@ public class XMLManager {
     }
 
     /**
-     * Procura na base de dados o DigestHex do tipo especificado do arquivo.
-     * <p></p>
-     * Returna nulo caso:
-     * <ol>
-     * <li>O arquivo não exista</li>
-     * <li>Não existe registro do hex tipo especificado para o arquivo</li>
-     * </ol>
+     * Returns the digest hex value for a given file and digest type.
+     * <p>
+     * Returns {@code null} when the file is not present in the catalog or when
+     * the requested digest type is not registered for that file.
      *
-     * @param name Nome do arquivo
-     * @param DigestType Tipo do digest
-     * @return O Hex ou NULL
+     * @param name file name (without path)
+     * @param DigestType digest algorithm type
+     * @return digest hex value, or {@code null} when not found
      */
     public String getDigestHex(String name, String DigestType) {
         Element file_entry = findFileEntry(name);
@@ -107,12 +112,12 @@ public class XMLManager {
     }
 
     /**
-     * Checa se existe um Hex do mesmo tipo e igual ao digest de qualquer outro arquivo.
+     * Checks whether another file has the same digest type and digest value.
      *
-     * @param name Nome do arquivo
-     * @param DigestType Tipo do digest
-     * @param DigestHex Hash Hex do digest
-     * @return Se há colisão
+     * @param name file name being evaluated (excluded from comparison)
+     * @param DigestType digest algorithm type
+     * @param DigestHex digest value in hexadecimal format
+     * @return {@code true} if a collision is found; otherwise {@code false}
      */
     public boolean checkCollision(String name, String DigestType, String DigestHex) {
         Element root = xmlDoc.getDocumentElement();
@@ -136,6 +141,12 @@ public class XMLManager {
         return false;
     }
 
+    /**
+     * Finds the file entry node that matches the provided file name.
+     *
+     * @param name file name (without path)
+     * @return matching {@code FILE_ENTRY} element, or {@code null} if absent
+     */
     private Element findFileEntry(String name) {
         Element root = xmlDoc.getDocumentElement();
         NodeList nodelist = root.getChildNodes();
@@ -151,6 +162,13 @@ public class XMLManager {
         return null;
     }
 
+    /**
+     * Finds the digest entry node of a specific type for a given file.
+     *
+     * @param name file name (without path)
+     * @param DigestType digest algorithm type
+     * @return matching digest hex element, or {@code null} if absent
+     */
     private Element findDigestEntryOfType(String name, String DigestType) {
         Element file_entry = findFileEntry(name);
         if (file_entry == null) return null;
