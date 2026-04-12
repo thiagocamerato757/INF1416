@@ -116,7 +116,7 @@ public class DigestCalculator {
      * @return normalized JCA algorithm name
      * @throws IllegalArgumentException if the provided digest type is not supported
      */
-    private static String normalizeAlgorithm(String digestType) {
+    static String normalizeAlgorithm(String digestType) {
         // Normalize to uppercase and trim whitespace for consistent comparison
         digestType = digestType.toUpperCase().trim();
         switch (digestType) {
@@ -140,7 +140,7 @@ public class DigestCalculator {
      * @throws NoSuchAlgorithmException if the normalized algorithm is not available in JCA
      * @throws IOException if an I/O error occurs while reading the file
      */
-    private static String calculateDigest(File file, String digestType)
+    static String calculateDigest(File file, String digestType)
             throws NoSuchAlgorithmException, IOException {
         String jcaAlg = normalizeAlgorithm(digestType);
         MessageDigest md = MessageDigest.getInstance(jcaAlg);
