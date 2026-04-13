@@ -54,9 +54,6 @@ public class DigestCalculator {
                 System.exit(1);
             }
 
-            // List input files
-            ShowFileList(filesToProcess);
-
             // Precompute digests and counts
             Map<String, String> folderDigests = new HashMap<>();
             Map<String, Integer> digestCounts = new HashMap<>();
@@ -73,7 +70,7 @@ public class DigestCalculator {
                 if (file.isDirectory()) continue; // skip subfolders
 
                 String calculatedHash = folderDigests.get(file.getName());
-                System.out.println("Arquivo: " + file.getName() + ", " + digestType + ": " + calculatedHash);
+                System.out.println(file.getName() + ", " + digestType + ": " + calculatedHash);
 
                 // Determine status
                 Status status = StatusEngine.determine(
@@ -98,17 +95,6 @@ public class DigestCalculator {
             System.err.println("Ocorreu um erro inesperado (" + e.getClass().getSimpleName() + "): " + e.getMessage());
             System.exit(1);
         }
-    }
-
-    /**
-     * Prints the names of regular files that will be processed.
-     *
-     * @param files files listed from the input directory
-     */
-    static void ShowFileList(File[] files) {
-        for (File file : files)
-            if (!file.isDirectory())
-                System.out.println(file.getName());
     }
 
     /**
