@@ -15,16 +15,16 @@
 - [ ] **2.1** – Construir um mapa invertido (hash → lista de nomes) usando:
     - os hashes calculados da pasta (apenas o tipo atual)
     - os hashes do XML (apenas o tipo atual)
-- [ ] **2.2** – Para cada arquivo da pasta, decidir o status:
+- [X] **2.2** – Para cada arquivo da pasta, decidir o status:
     - `COLISION` se o hash for igual ao de outro arquivo (nome diferente).
     - Senão, se o nome existe no XML e o hash confere → `OK`
     - Senão, se o nome existe no XML mas hash diferente → `NOT OK`
     - Senão → `NOT FOUND`
-- [ ] **2.3** – Imprimir uma linha por arquivo: `nome tipo hash (STATUS)` (um espaço entre campos).
-- [ ] **2.4** – Para cada arquivo com status `NOT FOUND`:
+- [X] **2.3** – Imprimir uma linha por arquivo: `nome tipo hash (STATUS)` (um espaço entre campos).
+- [X] **2.4** – Para cada arquivo com status `NOT FOUND`:
     - Localizar ou criar a entrada `<FILE_ENTRY>` com o nome do arquivo.
     - Adicionar ou atualizar o `<DIGEST_ENTRY>` com o tipo e hash calculado.
-- [ ] **2.5** – Salvar o XML atualizado no mesmo caminho (com indentação de 2 espaços).
+- [X] **2.5** – Salvar o XML atualizado no mesmo caminho (com indentação de 2 espaços).
 
 ## Lembrete para entrega
 
