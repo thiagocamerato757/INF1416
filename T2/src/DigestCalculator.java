@@ -13,10 +13,14 @@ import java.util.Map;
  */
 public class DigestCalculator {
 
+    /**
+     * Entry point for the digest calculator CLI.
+     *
+     * @param args command-line arguments: digest type, folder path, and XML catalog path
+     */
     public static void main(String[] args) {
 
-        // 1. VALIDAÇÃO DOS ARGUMENTOS
-        // O programa deve receber exatamente 3 argumentos.
+        // Validate CLI arguments
         if (args.length < 3) {
             System.out.println("Erro: Argumentos insuficientes.");
             System.out.println("Uso: java DigestCalculator <Tipo_Digest> <Caminho_Pasta_Arquivos> <Caminho_ArqListaDigest>");
@@ -34,14 +38,10 @@ public class DigestCalculator {
         }
 
         try {
-            // PROXIMOS PASSOS:
-
-            // 2. INICIALIZAÇÃO DA PERSISTÊNCIA (XMLManager)
-            // - Carregar o arquivo XML em memória usando DOM.
+            // Load XML catalog (or create if missing)
             XMLManager xmlManager = new XMLManager(xmlPath);
 
-            // 3. MAPEAMENTO DA PASTA DE ARQUIVOS
-            // - Acessar a pasta fornecida e listar todos os arquivos presentes.
+            // Validate input folder
             File folder = new File(folderPath);
             if (!folder.exists() || !folder.isDirectory()) {
                 System.err.println("Erro: Caminho da pasta inválido ou inexistente.");
@@ -54,41 +54,44 @@ public class DigestCalculator {
                 System.exit(1);
             }
 
-            // DEBUG LISTA DE ARQUIVOS
+            // List input files
             ShowFileList(filesToProcess);
 
-            // 4. ESTRUTURA PARA CONTROLE DE COLISÃO LOCAL
-            // - Armazenar os digests dos arquivos que
-            //   estão na pasta e detectar se dois arquivos diferentes geram o mesmo hash.
+            // Precompute digests and counts
             Map<String, String> folderDigests = new HashMap<>();
+            Map<String, Integer> digestCounts = new HashMap<>();
 
-            // 5. LOOP DE PROCESSAMENTO
             for (File file : filesToProcess) {
-                if (file.isDirectory()) continue; // skip in case of folder
-
-                // 5.1 CALCULAR DIGEST
+                if (file.isDirectory()) continue; // skip subfolders
                 String calculatedHash = calculateDigest(file, digestType);
-
-                // 5.2 GUARDAR NO MAPA (ITEM 1.6)
                 folderDigests.put(file.getName(), calculatedHash);
+                digestCounts.put(calculatedHash, digestCounts.getOrDefault(calculatedHash, 0) + 1);
+            }
+
+            // Process each file
+            for (File file : filesToProcess) {
+                if (file.isDirectory()) continue; // skip subfolders
+
+                String calculatedHash = folderDigests.get(file.getName());
                 System.out.println("Arquivo: " + file.getName() + ", " + digestType + ": " + calculatedHash);
 
-                // 5.3 DETERMINAR STATUS (StatusEngine)
-                // - Comparar hashCalculado com o XML.
-                // - Verificar colisões (no XML e na lista de digests da pasta).
-                Status status = StatusEngine.determine(file.getName(), digestType, calculatedHash, xmlManager);
+                // Determine status
+                Status status = StatusEngine.determine(
+                        file.getName(),
+                        digestType,
+                        calculatedHash,
+                        xmlManager,
+                        digestCounts
+                );
 
-                // 5.4 IMPRIMIR RESULTADO NO FORMATO PADRÃO
+                // Print result
                 System.out.println(file.getName() + " " + digestType + " " + calculatedHash + " (" + status + ")");
 
-                // 5.5 ARMAZENAR PARA ATUALIZAÇÃO POSTERIOR
-                // - Se status for NOT FOUND, agendar para inserção no XML.
-                // - Se status for COLISION, ignorar atualização.
+                // Add missing entries
                 if (status == Status.NOT_FOUND) { xmlManager.addNewEntry(file.getName(), digestType, calculatedHash); }
             }
 
-            // 6. FINALIZAÇÃO E GRAVAÇÃO
-            // - Se houve novos registros (NOT FOUND), salvar o XML mantendo a estrutura original.
+            // Save updated XML
             xmlManager.save();
 
         } catch (Exception e) {

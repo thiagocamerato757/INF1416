@@ -10,6 +10,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
+import java.util.Map;
 
 /*
  * PUC-Rio – INF1416 – Segurança da Informação
@@ -24,7 +25,7 @@ public class XMLManager {
     DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
     DocumentBuilder docBuilder;
     Document xmlDoc;
-    File XMLfile = null;
+    File XMLfile;
 
     /**
      * Builds an XML manager from a catalog path.
@@ -95,55 +96,65 @@ public class XMLManager {
      * @return digest hex value, or {@code null} when not found
      */
     public String getDigestHex(String name, String DigestType) {
-        Element file_entry = findFileEntry(name);
-        if (file_entry == null) return null;
+         Element file_entry = findFileEntry(name);
+         if (file_entry == null) return null;
 
-        NodeList digests = file_entry.getElementsByTagName("DIGEST_ENTRY");
-        String currentHex = null;
-        for (int i = 0; i < digests.getLength(); i++) {
-            Node digest_entry_node = digests.item(i);
-            NodeList digest_entry_children = digest_entry_node.getChildNodes();
-            Node digest_type = digest_entry_children.item(0);
-            Node digest_hex = digest_entry_children.item(1);
+         NodeList digests = file_entry.getElementsByTagName("DIGEST_ENTRY");
+         String currentHex = null;
+         for (int i = 0; i < digests.getLength(); i++) {
+             Node digest_entry_node = digests.item(i);
+             NodeList digest_entry_children = digest_entry_node.getChildNodes();
+             if (digest_entry_children.getLength() < 2) continue;
+             Node digest_type = digest_entry_children.item(0);
+             Node digest_hex = digest_entry_children.item(1);
 
-            if (digest_type.getTextContent().equals(DigestType)) {
-                currentHex = digest_hex.getTextContent();
-                break;
-            }
-        }
+             if (digest_type != null && digest_hex != null && digest_type.getTextContent().equals(DigestType)) {
+                 currentHex = digest_hex.getTextContent();
+                 break;
+             }
+         }
 
-        return currentHex;
-    }
+         return currentHex;
+     }
 
     /**
-     * Checks whether another file has the same digest type and digest value.
+     * Checks whether another file has the same digest type and digest value,
+     * either in the current folder set (by digest counts) or in the XML catalog.
      *
      * @param name file name being evaluated (excluded from comparison)
      * @param DigestType digest algorithm type
      * @param DigestHex digest value in hexadecimal format
+     * @param digestCounts map of digest hex values to their occurrence counts in the folder
      * @return {@code true} if a collision is found; otherwise {@code false}
      */
-    public boolean checkCollision(String name, String DigestType, String DigestHex) {
-        Element root = xmlDoc.getDocumentElement();
-        NodeList file_entries = root.getElementsByTagName("FILE_ENTRY");
-        for (int i = 0; i < file_entries.getLength(); i++) {
-            Node file_entry_node = file_entries.item(i);
-            Node file_name_node = file_entry_node.getChildNodes().item(0);
-            if (file_name_node.getTextContent().equals(name)) continue;
+    public boolean checkCollision(String name, String DigestType, String DigestHex, Map<String, Integer> digestCounts) {
+         if (digestCounts != null && digestCounts.getOrDefault(DigestHex, 0) > 1) return true;
+         Element root = xmlDoc.getDocumentElement();
+         NodeList file_entries = root.getElementsByTagName("FILE_ENTRY");
+         for (int i = 0; i < file_entries.getLength(); i++) {
+             Node file_entry_node = file_entries.item(i);
+             NodeList file_entry_children = file_entry_node.getChildNodes();
+             if (file_entry_children.getLength() == 0) continue;
+             Node file_name_node = file_entry_children.item(0);
+             if (file_name_node == null) continue;
+             if (file_name_node.getTextContent().equals(name)) continue;
 
-            NodeList digest_entries = ((Element) file_entry_node).getElementsByTagName("DIGEST_ENTRY");
-            for (int j = 0; j < digest_entries.getLength(); j++) {
-                Node digest_entry_node = digest_entries.item(j);
-                Node digest_type = digest_entry_node.getChildNodes().item(0);
-                if (digest_type.getTextContent().equals(DigestType)) {
-                    Node digest_hex = digest_entry_node.getChildNodes().item(1);
-                    if (digest_hex.getTextContent().equals(DigestHex)) return true;
-                }
-            }
-        }
+             NodeList digest_entries = ((Element) file_entry_node).getElementsByTagName("DIGEST_ENTRY");
+             for (int j = 0; j < digest_entries.getLength(); j++) {
+                 Node digest_entry_node = digest_entries.item(j);
+                 NodeList digest_children = digest_entry_node.getChildNodes();
+                 if (digest_children.getLength() < 2) continue;
+                 Node digest_type = digest_children.item(0);
+                 if (digest_type == null) continue;
+                 if (digest_type.getTextContent().equals(DigestType)) {
+                     Node digest_hex = digest_children.item(1);
+                     if (digest_hex != null && digest_hex.getTextContent().equals(DigestHex)) return true;
+                 }
+             }
+         }
 
-        return false;
-    }
+         return false;
+     }
 
     /**
      * Saves the XML as a file
@@ -152,6 +163,8 @@ public class XMLManager {
         try {
             Transformer transformer = TransformerFactory
                     .newInstance().newTransformer();
+            transformer.setOutputProperty(javax.xml.transform.OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
             transformer.transform(
                     new DOMSource(xmlDoc),
                     new StreamResult(XMLfile)
@@ -168,42 +181,21 @@ public class XMLManager {
      * @return matching {@code FILE_ENTRY} element, or {@code null} if absent
      */
     private Element findFileEntry(String name) {
-        Element root = xmlDoc.getDocumentElement();
-        NodeList nodelist = root.getChildNodes();
-        for (int i = 0; i < nodelist.getLength(); i++) {
-            Node file_entry_node = nodelist.item(i);
-            Node file_name_node = file_entry_node.getChildNodes().item(0);
-            String file_name = file_name_node.getTextContent();
-            if (file_name.equals(name)) {
-                return (Element) file_entry_node;
-            }
-        }
+         Element root = xmlDoc.getDocumentElement();
+         NodeList nodelist = root.getChildNodes();
+         for (int i = 0; i < nodelist.getLength(); i++) {
+             Node file_entry_node = nodelist.item(i);
+             if (file_entry_node.getNodeType() != Node.ELEMENT_NODE) continue;
+             NodeList children = file_entry_node.getChildNodes();
+             if (children.getLength() == 0) continue;
+             Node file_name_node = children.item(0);
+             if (file_name_node == null) continue;
+             String file_name = file_name_node.getTextContent();
+             if (file_name.equals(name)) {
+                 return (Element) file_entry_node;
+             }
+         }
 
-        return null;
-    }
-
-    /**
-     * Finds the digest entry node of a specific type for a given file.
-     *
-     * @param name file name (without path)
-     * @param DigestType digest algorithm type
-     * @return matching digest hex element, or {@code null} if absent
-     */
-    private Element findDigestEntryOfType(String name, String DigestType) {
-        Element file_entry = findFileEntry(name);
-        if (file_entry == null) return null;
-
-        NodeList digests = file_entry.getElementsByTagName("DIGEST_ENTRY");
-        for (int i = 0; i < digests.getLength(); i++) {
-            Node digest_entry_node = digests.item(i);
-            NodeList digest_entry_children = digest_entry_node.getChildNodes();
-            Node digest_type = digest_entry_children.item(0);
-            Node digest_hex = digest_entry_children.item(1);
-            if (digest_type.getTextContent().equals(DigestType)) {
-                return (Element) digest_hex;
-            }
-        }
-
-        return null;
-    }
+         return null;
+     }
 }

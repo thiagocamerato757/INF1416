@@ -8,11 +8,11 @@
 - [X] **1.4** – Listar todos os arquivos da pasta (ignorar subpastas).
 - [X] **1.7** – Se o arquivo XML não existir, criar um novo documento com raiz `<CATALOG>`.
 - [X] **1.8** – Ler o XML (se existir) e extrair um mapa: nome_arquivo → (tipo → hash).
-- [ ] **1.9** – Tratar erros: algoritmo inválido, problemas de leitura do XML, e fechar recursos (try-with-resources).
+- [X] **1.9** – Tratar erros: algoritmo inválido, problemas de leitura do XML, e fechar recursos (try-with-resources).
 
 ## 2. comparação, status, XML de saída
 
-- [ ] **2.1** – Construir um mapa invertido (hash → lista de nomes) usando:
+- [X] **2.1** – Construir um mapa invertido (hash → qtArquivos) usando:
     - os hashes calculados da pasta (apenas o tipo atual)
     - os hashes do XML (apenas o tipo atual)
 - [X] **2.2** – Para cada arquivo da pasta, decidir o status:
