@@ -1,6 +1,5 @@
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -39,7 +38,13 @@ public class XMLManager {
         XMLfile = new File(xmlPath);
         try {
             docBuilder = docBuilderFactory.newDocumentBuilder();
-            if (XMLfile.createNewFile()) {
+        } catch (Exception e) {
+            System.err.println("Erro ao criar DocumentBuilder: " + e.getMessage());
+            return;
+        }
+        
+        try {
+            if (XMLfile.createNewFile() || XMLfile.length() == 0) {
                 xmlDoc = docBuilder.newDocument();
                 Element catalog = xmlDoc.createElement("CATALOG");
                 xmlDoc.appendChild(catalog);
@@ -48,6 +53,10 @@ public class XMLManager {
             }
         } catch (Exception e) {
             System.err.println("Erro ao abrir o arquivo: " + e.getMessage());
+            // Initialize with empty document as fallback
+            xmlDoc = docBuilder.newDocument();
+            Element catalog = xmlDoc.createElement("CATALOG");
+            xmlDoc.appendChild(catalog);
         }
     }
 
@@ -102,11 +111,10 @@ public class XMLManager {
          NodeList digests = file_entry.getElementsByTagName("DIGEST_ENTRY");
          String currentHex = null;
          for (int i = 0; i < digests.getLength(); i++) {
-             Node digest_entry_node = digests.item(i);
-             NodeList digest_entry_children = digest_entry_node.getChildNodes();
-             if (digest_entry_children.getLength() < 2) continue;
-             Node digest_type = digest_entry_children.item(0);
-             Node digest_hex = digest_entry_children.item(1);
+             Element digest_entry_node = (Element) digests.item(i);
+             
+             Element digest_type = (Element) digest_entry_node.getElementsByTagName("DIGEST_TYPE").item(0);
+             Element digest_hex = (Element) digest_entry_node.getElementsByTagName("DIGEST_HEX").item(0);
 
              if (digest_type != null && digest_hex != null && digest_type.getTextContent().equals(DigestType)) {
                  currentHex = digest_hex.getTextContent();
@@ -132,22 +140,19 @@ public class XMLManager {
          Element root = xmlDoc.getDocumentElement();
          NodeList file_entries = root.getElementsByTagName("FILE_ENTRY");
          for (int i = 0; i < file_entries.getLength(); i++) {
-             Node file_entry_node = file_entries.item(i);
-             NodeList file_entry_children = file_entry_node.getChildNodes();
-             if (file_entry_children.getLength() == 0) continue;
-             Node file_name_node = file_entry_children.item(0);
-             if (file_name_node == null) continue;
-             if (file_name_node.getTextContent().equals(name)) continue;
+             Element file_entry_node = (Element) file_entries.item(i);
+             
+             Element file_name_elem = (Element) file_entry_node.getElementsByTagName("FILE_NAME").item(0);
+             if (file_name_elem == null) continue;
+             if (file_name_elem.getTextContent().equals(name)) continue;
 
-             NodeList digest_entries = ((Element) file_entry_node).getElementsByTagName("DIGEST_ENTRY");
+             NodeList digest_entries = file_entry_node.getElementsByTagName("DIGEST_ENTRY");
              for (int j = 0; j < digest_entries.getLength(); j++) {
-                 Node digest_entry_node = digest_entries.item(j);
-                 NodeList digest_children = digest_entry_node.getChildNodes();
-                 if (digest_children.getLength() < 2) continue;
-                 Node digest_type = digest_children.item(0);
+                 Element digest_entry_node = (Element) digest_entries.item(j);
+                 Element digest_type = (Element) digest_entry_node.getElementsByTagName("DIGEST_TYPE").item(0);
                  if (digest_type == null) continue;
                  if (digest_type.getTextContent().equals(DigestType)) {
-                     Node digest_hex = digest_children.item(1);
+                     Element digest_hex = (Element) digest_entry_node.getElementsByTagName("DIGEST_HEX").item(0);
                      if (digest_hex != null && digest_hex.getTextContent().equals(DigestHex)) return true;
                  }
              }
@@ -182,17 +187,12 @@ public class XMLManager {
      */
     private Element findFileEntry(String name) {
          Element root = xmlDoc.getDocumentElement();
-         NodeList nodelist = root.getChildNodes();
-         for (int i = 0; i < nodelist.getLength(); i++) {
-             Node file_entry_node = nodelist.item(i);
-             if (file_entry_node.getNodeType() != Node.ELEMENT_NODE) continue;
-             NodeList children = file_entry_node.getChildNodes();
-             if (children.getLength() == 0) continue;
-             Node file_name_node = children.item(0);
-             if (file_name_node == null) continue;
-             String file_name = file_name_node.getTextContent();
-             if (file_name.equals(name)) {
-                 return (Element) file_entry_node;
+         NodeList file_entries = root.getElementsByTagName("FILE_ENTRY");
+         for (int i = 0; i < file_entries.getLength(); i++) {
+             Element file_entry_node = (Element) file_entries.item(i);
+             Element file_name_elem = (Element) file_entry_node.getElementsByTagName("FILE_NAME").item(0);
+             if (file_name_elem != null && file_name_elem.getTextContent().equals(name)) {
+                 return file_entry_node;
              }
          }
 
