@@ -70,7 +70,6 @@ public class DigestCalculator {
                 if (file.isDirectory()) continue; // skip subfolders
 
                 String calculatedHash = folderDigests.get(file.getName());
-                System.out.println(file.getName() + ", " + digestType + ": " + calculatedHash);
 
                 // Determine status
                 Status status = StatusEngine.determine(
