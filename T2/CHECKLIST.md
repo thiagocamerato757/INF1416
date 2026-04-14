@@ -28,4 +28,4 @@
 
 ## Lembrete para entrega
 
-- [ ] **Entrega** – Comentar início do arquivo com nomes e matrículas; compilar com JDK 1.8; submeter **apenas o `.java`** no EAD (cada um por si).
+- [X] **Entrega** – Comentar início do arquivo com nomes e matrículas; compilar com JDK 1.8; submeter **apenas o `.java`** no EAD (cada um por si).
