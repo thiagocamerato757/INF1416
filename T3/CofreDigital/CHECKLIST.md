@@ -17,16 +17,12 @@
 
 ## 1. Estrutura do banco de dados
 
-- [ ] Criar script SQL (`schema.sql`) em `src/main/resources/`
-- [ ] Criar tabela **Grupos** (GID único, nome do grupo)
-- [ ] Criar tabela **Usuarios** (UID único, login/email, nome, senha bcrypt, segredo TOTP cifrado, GID, KID, contador de erros, status de bloqueio, timestamp de bloqueio, total de acessos, total de consultas)
-- [ ] Criar tabela **Chaveiro** (KID único, UID, certificado PEM, chave privada criptografada em BLOB)
-- [ ] Criar tabela **Mensagens** (MID único, texto da mensagem)
-- [ ] Criar tabela **Registros** (RID único, MID, UID opcional, detalhe opcional, timestamp)
-- [ ] Inserir grupos padrão: `Administrador` e `Usuario`
-- [ ] Inserir todas as mensagens de log (MIDs 1001–8004) conforme Tabela de Mensagens de Registro do enunciado
-- [ ] Executar script no banco e validar estrutura
-
+- [X] Criar script SQL (`schema.sql`) em `src/main/resources/`
+- [X] Criar tabela **Grupos** (GID único, nome do grupo)
+- [X] Criar tabela **Usuarios** (UID único, login/email, nome, senha bcrypt, segredo TOTP cifrado, GID, KID, contador de erros, status de bloqueio, timestamp de bloqueio, total de acessos, total de consultas)
+- [X] Criar tabela **Chaveiro** (KID único, UID, certificado PEM, chave privada criptografada em BLOB)
+- [X] Criar tabela **Mensagens** (MID único, texto da mensagem)
+- [X] Criar tabela **Registros** (RID único, MID, UID opcional, detalhe opcional, timestamp)
 ---
 
 ## 2. Partida do sistema — Primeira execução (cadastro do administrador)
