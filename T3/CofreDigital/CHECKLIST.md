@@ -10,7 +10,7 @@
 - [x] Projeto Maven criado no IntelliJ
 - [x] Dependências adicionadas (Driver do Banco de dados, Bouncy Castle)
 - [x] Arquivo `application.properties` criado com parâmetros de conexão ao banco
-- [x] Classe `DataBaseStarter` implementada (conexão com logging)
+- [x] Classe `DB.DataBaseStarter` implementada (conexão com logging)
 - [x] Classe principal `DigitalVault` testando conexão com sucesso
 
 ---
