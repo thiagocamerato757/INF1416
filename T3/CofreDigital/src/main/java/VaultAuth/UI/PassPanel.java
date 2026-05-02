@@ -1,6 +1,7 @@
 package VaultAuth.UI;
 
 import VaultAuth.AuthController;
+import VaultAuth.PassAuth;
 import javafx.util.Pair;
 
 import javax.swing.*;
@@ -34,12 +35,15 @@ public class PassPanel extends JPanel {
 
         proceed = new JButton("Proceed");
         proceed.addActionListener(e -> {
-            System.out.println(passPlaceholder);
-            System.out.println(entries);
+            //System.out.println(passPlaceholder);
+            //System.out.println(entries);
             passPlaceholder = "";
             passField.setText(passPlaceholder);
+            PassAuth passAuth = PassAuth.getInstance();
+            passAuth.validatePassword(passAuth.prepPasswords(entries));
+
             AuthController auth = AuthController.getInstance();
-            //auth.Check(entries);
+            auth.Check();
             entries.clear();
         });
         add(proceed);

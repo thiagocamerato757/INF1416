@@ -16,7 +16,7 @@ enum AuthPhase {
 public class AuthController {
     private static AuthPhase authPhase = AuthPhase.EMAIL;
 
-    private static AuthController instance = new AuthController();
+    private static final AuthController instance = new AuthController();
 
     private AuthFrame frame;
 
@@ -32,16 +32,19 @@ public class AuthController {
         return frame;
     }
 
-    public void Check(byte[] data) {
+    public void Check() {
         switch (authPhase) {
             case EMAIL:
-                String email = new String(data);
-                LoginAuth loginAuth = new LoginAuth();
-                if (loginAuth.validateLogin(email)) {
+                LoginAuth loginAuth = LoginAuth.getInstance();
+                if (loginAuth.isValid()) {
                     NextPhase();
                 }
                 break;
             case PASSWORD:
+                PassAuth passAuth = PassAuth.getInstance();
+                if (passAuth.isValid()) {
+                    NextPhase();
+                }
                 break;
             case TOTP:
                 break;
@@ -56,13 +59,12 @@ public class AuthController {
                 break;
             case PASSWORD:
                 authPhase = AuthPhase.TOTP;
-                frame.remove(frame.getComponent(0));
-                frame.add(new TOTPPanel());
+                frame.setPanel(new TOTPPanel());
                 break;
             case TOTP:
                 authPhase = AuthPhase.AUTHORIZED;
-                frame.remove(frame.getComponent(0));
-                frame.add(new JLabel("Autenticado"));
+                frame.setPanel(null);
+                frame.setTitle("AUTHORIZED");
                 break;
             default:
                 break;
