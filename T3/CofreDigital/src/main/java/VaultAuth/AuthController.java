@@ -36,17 +36,21 @@ public class AuthController {
         switch (authPhase) {
             case EMAIL:
                 LoginAuth loginAuth = LoginAuth.getInstance();
-                if (loginAuth.isValid()) {
+                if (loginAuth.isValidated()) {
                     NextPhase();
                 }
                 break;
             case PASSWORD:
                 PassAuth passAuth = PassAuth.getInstance();
-                if (passAuth.isValid()) {
+                if (passAuth.isValidated()) {
                     NextPhase();
                 }
                 break;
             case TOTP:
+                TOTP totp = TOTP.getInstance();
+                if (totp.isValidated()) {
+                    NextPhase();
+                }
                 break;
         }
     }
@@ -63,7 +67,7 @@ public class AuthController {
                 break;
             case TOTP:
                 authPhase = AuthPhase.AUTHORIZED;
-                frame.setPanel(null);
+                //frame.setPanel(null);
                 frame.setTitle("AUTHORIZED");
                 break;
             default:

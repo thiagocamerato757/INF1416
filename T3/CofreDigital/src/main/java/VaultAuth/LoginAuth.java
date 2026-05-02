@@ -18,7 +18,7 @@ public class LoginAuth {
         return instance;
     }
 
-    public boolean isValid() {
+    public boolean isValidated() {
         return validated;
     }
 
@@ -28,6 +28,7 @@ public class LoginAuth {
      */
     public void validateLogin(String email) {
         // sql call to find email
+        // checks if timed out
         // compare -> return true or false
         validated = true;
     }

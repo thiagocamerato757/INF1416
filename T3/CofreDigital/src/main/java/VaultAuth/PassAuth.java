@@ -34,7 +34,7 @@ public class PassAuth {
         return instance;
     }
 
-    public boolean isValid() {
+    public boolean isValidated() {
         return validated;
     }
 

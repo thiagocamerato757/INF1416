@@ -8,7 +8,10 @@ import java.util.Date;
  * TOTP class is dedicated for authenticating the user's possession of the TOTP
  */
 public class TOTP {
-    private byte [] key = null;
+    private static TOTP instance = new TOTP();
+    private boolean validated = false;
+
+    private byte[] key = null;
     private long timeStepInSeconds = 30;
 
     /**
@@ -19,9 +22,21 @@ public class TOTP {
      * @param timeStepInSeconds Time interval in between OTPs
      * @throws Exception TBD
      */
-    public TOTP(String base32EncodedSecret, long timeStepInSeconds)
+    private TOTP(String base32EncodedSecret, long timeStepInSeconds)
             throws Exception {
 
+    }
+
+    private TOTP() {
+
+    }
+
+    public static TOTP getInstance() {
+        return instance;
+    }
+
+    public boolean isValidated() {
+        return validated;
     }
 
     /**
@@ -68,9 +83,10 @@ public class TOTP {
      * Deve considerar um atraso ou adiantamento de 30 segundos no
      * relógio da máquina que gerou o código TOTP.
      * @param inputTOTP Input TOTP code
-     * @return if the input code is valid compared to 30 seconds ago, now and 30 seconds forward
      */
-    public boolean validateCode(String inputTOTP) {
-        return false;
+    public void validateCode(String inputTOTP) {
+
+
+        validated = true;
     }
 }
