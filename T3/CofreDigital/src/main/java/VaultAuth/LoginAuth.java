@@ -19,6 +19,6 @@ public class LoginAuth {
     public boolean validateLogin(String email) {
         // sql call to find email
         // compare -> return true or false
-        return false;
+        return true;
     }
 }
