@@ -1,8 +1,14 @@
 package VaultAuth;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
+
+import model.UserModel;
+import org.bouncycastle.crypto.generators.OpenBSDBCrypt;
+import java.security.SecureRandom;
+import java.util.Optional;
 
 /**
  * PassAuth is a class dedicated to check and validate the input password compared to the hash (+ salt) stored
@@ -50,10 +56,19 @@ public class PassAuth {
      * Checks if the calculated password hash is equal to the stored hash
      */
     public void validatePassword(List<String> possiblePasswords) {
-        String hash = ""; // get from Sql
-        if (possiblePasswords != null)
-            //validated = possiblePasswords.parallelStream().anyMatch(t -> BCrypt.checkpw(t, hash));
-            validated = true;
+        AuthController auth = AuthController.getInstance();
+        Optional<UserModel> user = auth.getUser();
+        if (!user.isPresent()) return;
+
+        String hash = user.get().getSenhaBcrypt();
+
+        if (possiblePasswords != null) {
+            validated = possiblePasswords.parallelStream().anyMatch(t -> OpenBSDBCrypt.checkPassword(hash, t.getBytes()));
+            if (validated) return;
+
+            // info.setText("password incorrect");
+            updatePassError();
+        }
     }
 
     /**

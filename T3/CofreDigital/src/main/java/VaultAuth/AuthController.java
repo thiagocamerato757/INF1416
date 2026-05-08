@@ -80,6 +80,10 @@ public class AuthController {
         System.out.println(authPhase);
     }
 
+    public Optional<UserModel> getUser() {
+        return user;
+    }
+
     private void resetAuth() {
         authPhase = AuthPhase.EMAIL;
         user = Optional.empty();

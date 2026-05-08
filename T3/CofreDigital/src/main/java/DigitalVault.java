@@ -4,7 +4,6 @@ import java.security.Security;
 import javax.swing.*;
 
 import VaultAuth.AuthController;
-import VaultAuth.UI.AuthFrame;
 
 /**
  * Main entry point for the Cofre-Digital application.
