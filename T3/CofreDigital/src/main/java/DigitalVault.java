@@ -16,7 +16,7 @@ public class DigitalVault {
         //Security.addProvider(new BouncyCastleProvider());
 
         // Test database connection
-        // DataBaseStarter.testConnection();
+        DataBaseStarter.testConnection();
 
         // UI init
         SwingUtilities.invokeLater(() -> {
