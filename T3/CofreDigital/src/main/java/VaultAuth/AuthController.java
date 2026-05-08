@@ -3,8 +3,10 @@ package VaultAuth;
 import VaultAuth.UI.AuthFrame;
 import VaultAuth.UI.PassPanel;
 import VaultAuth.UI.TOTPPanel;
+import model.UserModel;
 
 import javax.swing.*;
+import java.util.Optional;
 
 enum AuthPhase {
     EMAIL,
@@ -19,6 +21,7 @@ public class AuthController {
     private static final AuthController instance = new AuthController();
 
     private AuthFrame frame;
+    private Optional<UserModel> user = Optional.empty();
 
     private AuthController() {
         frame = new AuthFrame("Authentication");
@@ -37,6 +40,7 @@ public class AuthController {
             case EMAIL:
                 LoginAuth loginAuth = LoginAuth.getInstance();
                 if (loginAuth.isValidated()) {
+                    user = Optional.of(loginAuth.getUser());
                     NextPhase();
                 }
                 break;
@@ -55,7 +59,7 @@ public class AuthController {
         }
     }
 
-    public void NextPhase() {
+    private void NextPhase() {
         switch (authPhase) {
             case EMAIL:
                 authPhase = AuthPhase.PASSWORD;
@@ -74,5 +78,11 @@ public class AuthController {
                 break;
         }
         System.out.println(authPhase);
+    }
+
+    private void resetAuth() {
+        authPhase = AuthPhase.EMAIL;
+        user = Optional.empty();
+        NextPhase();
     }
 }

@@ -16,7 +16,7 @@ public class UserDAO {
      * @return the User ID number
      */
     public static int createUser(UserModel user) {
-        String sql = "INSERT INTO Usuarios (login, nome, senha_bcrypt, totp_secret_enc, grupo_id, kid ) " +
+        String sql = "INSERT INTO Usuarios (login, nome, senha_bcrypt, totp_secret_encrypted, grupo_id, KID ) " +
                 "VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DataBaseStarter.getConnection();
@@ -44,6 +44,38 @@ public class UserDAO {
         }
         return -1;
     }
+
+    /**
+     * Gets a User based on login.
+     * @param login login
+     * @return User if it exists
+     */
+    public static UserModel getUserByLogin(String login) {
+        String sql = "SELECT * FROM Usuarios WHERE login = ?";
+        UserModel user = null;
+
+        try (Connection conn = DataBaseStarter.getConnection();
+             PreparedStatement statement = conn.prepareStatement(sql, Statement.NO_GENERATED_KEYS)) {
+
+            statement.setString(1, login);
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet != null && resultSet.next()) {
+                user = new UserModel();
+                user.setLogin(resultSet.getString("login"));
+                user.setNome(resultSet.getString("nome"));
+                user.setSenhaBcrypt(resultSet.getString("senha_bcrypt"));
+                user.setTotpSecretEncrypted(resultSet.getBytes("totp_secret_encrypted"));
+                user.setGrupoId(resultSet.getInt("grupo_id"));
+            }
+        }
+        catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
+
+        return user;
+    }
+
     /**
     * Checks if there are any users in the Usuarios table.
     *
