@@ -1,10 +1,8 @@
 package VaultAuth;
 
-import javafx.util.Pair;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Map.Entry;
 
 /**
  * PassAuth is a class dedicated to check and validate the input password compared to the hash (+ salt) stored
@@ -43,7 +41,7 @@ public class PassAuth {
      * @param inputSequence Sequence of inputs from the virtual keyboard
      * @return list of possible passwords
      */
-    public List<String> prepPasswords(List<Pair<Integer, Integer>> inputSequence) {
+    public List<String> prepPasswords(List<Entry<Integer, Integer>> inputSequence) {
         if (!passwordSizeCheck(inputSequence.size())) return null;
         return genCombinations(inputSequence);
     };
@@ -66,12 +64,12 @@ public class PassAuth {
         return passLen >= 8 && passLen <= 10;
     }
 
-    private List<String> genCombinations(List<Pair<Integer, Integer>> passwords) {
+    private List<String> genCombinations(List<Entry<Integer, Integer>> passwords) {
         List<String> passes = new ArrayList<>();
         List<String> temp = new ArrayList<>();
         passes.add("");
 
-        for (Pair<Integer, Integer> password : passwords) {
+        for (Entry<Integer, Integer> password : passwords) {
             Integer A = password.getKey();
             Integer B = password.getValue();
             for (String pass : passes) {

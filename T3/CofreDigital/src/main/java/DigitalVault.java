@@ -1,4 +1,5 @@
-//import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import db.DataBaseStarter;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import java.security.Security;
 import javax.swing.*;
 
@@ -13,7 +14,7 @@ public class DigitalVault {
 
     public static void main(String[] args) {
         // Register Bouncy Castle security provider (required for bcrypt)
-        //Security.addProvider(new BouncyCastleProvider());
+        Security.addProvider(new BouncyCastleProvider());
 
         // Test database connection
         DataBaseStarter.testConnection();

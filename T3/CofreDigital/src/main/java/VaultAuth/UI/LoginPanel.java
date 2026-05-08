@@ -2,7 +2,6 @@ package VaultAuth.UI;
 
 import VaultAuth.AuthController;
 import VaultAuth.LoginAuth;
-import sun.rmi.runtime.Log;
 
 import javax.swing.*;
 
