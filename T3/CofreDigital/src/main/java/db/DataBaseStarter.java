@@ -1,3 +1,5 @@
+package db;
+
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -9,7 +11,7 @@ import java.util.logging.Logger;
 /**
  * Utility class for database connection management.
  * Loads configuration from application.properties and provides JDBC connections.
- */
+*/
 public class DataBaseStarter {
 
     private static final Logger LOGGER = Logger.getLogger(DataBaseStarter.class.getName());
@@ -52,12 +54,16 @@ public class DataBaseStarter {
     /**
      * Tests the database connection by attempting to open and close a connection.
      * Logs success or failure using java.util.logging.
+     *
+     * @return boolean indicating whether the connection test was successful
      */
-    public static void testConnection() {
+    public static boolean testConnection() {
         try (Connection ignored = getConnection()) {
             LOGGER.info("Successfully connected to the database");
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Connection failed", e);
+            return false;
         }
+        return true;
     }
 }
