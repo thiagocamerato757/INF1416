@@ -13,7 +13,7 @@ public class MessageDAO {
         * @return the message text if found,
      */
     public static String find_message_by_MID(int MID) {
-        String sql_querry = "SELECT * FROM messages WHERE MID = ?";
+        String sql_querry = "SELECT * FROM Mensagens WHERE MID = ?";
         try(Connection connection = DataBaseStarter.getConnection()){
             PreparedStatement statement = connection.prepareStatement(sql_querry);
             statement.setInt(1, MID);
