@@ -1,5 +1,5 @@
 import db.DataBaseStarter;
-import db.Logger;
+import logger.Logger;
 import db.dao.UserDAO;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import java.security.Security;
@@ -20,7 +20,7 @@ public class DigitalVault {
         DataBaseStarter.testConnection();
 
         SwingUtilities.invokeLater(() -> {
-            Logger.log(1001);
+            Logger.log(1001, "Sistema iniciado.");
 
             if (UserDAO.checkAnyUser()) {
                 VaultAuth.UI.AdminLoginFrame loginFrame = new VaultAuth.UI.AdminLoginFrame();

@@ -1,7 +1,7 @@
 package VaultAuth;
 
 import crypto.PasswordUtil;
-import db.Logger;
+import logger.Logger;
 import db.dao.KeyDAO;
 import db.dao.UserDAO;
 import model.UserModel;
@@ -190,7 +190,7 @@ public class AdminController {
         }
 
         adminSecretPhrase = secretPhrase;
-        Logger.log(1006, admin.getUid());
+        Logger.log(1006, admin.getUid(), "Partida do sistema iniciada para operação normal pelos usuários.");
         return null;
     }
 
