@@ -72,8 +72,16 @@ public class PassAuth {
         String hash = user.get().getSenhaBcrypt();
 
         if (possiblePasswords != null) {
-            validated = possiblePasswords.parallelStream().anyMatch(t -> PasswordUtil.checkPassword(hash, t));
-            if (validated) return;
+            Optional<String> found = possiblePasswords.parallelStream()
+                    .filter(t -> PasswordUtil.checkPassword(hash, t))
+                    .findAny();
+
+            String password = found.orElse(null);
+            if (password != null) {
+                TOTP.getInstance().setPass(password);
+                validated = true;
+                return;
+            }
         }
         feedbackMessage = "Password incorrect";
         updatePassError();
@@ -123,10 +131,11 @@ public class PassAuth {
         user.ifPresent(u -> {
             int err = u.getErroSenha();
             err++;
-            if (err % 3 == 0) {
+            if (err >= 3) {
                 u.setBloqueadoAte(Timestamp.valueOf(LocalDateTime.now().plusMinutes(2)));
                 AuthController auth = AuthController.getInstance();
                 auth.resetAuth();
+                err = 0;
             }
             u.setErroSenha(err);
             UserDAO.updateUser(u);

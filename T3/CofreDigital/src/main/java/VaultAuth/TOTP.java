@@ -1,8 +1,17 @@
 package VaultAuth;
 
+import Cryptography.Base32;
+import db.dao.UserDAO;
+import model.UserModel;
+
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.util.Date;
+import java.nio.ByteBuffer;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 /**
  * TOTP class is dedicated for authenticating the user's possession of the TOTP
@@ -10,26 +19,14 @@ import java.util.Date;
 public class TOTP {
     private static TOTP instance = new TOTP();
     private boolean validated = false;
+    private String feedbackMessage = "";
 
     private byte[] key = null;
     private long timeStepInSeconds = 30;
 
-    /**
-     * Construtor da classe. Recebe a chave secreta em BASE32 e o intervalo
-     * de tempo a ser adotado (default = 30 segundos). Deve decodificar a
-     * chave secreta e armazenar em key. Em caso de erro, gera Exception.
-     * @param base32EncodedSecret Secret from database encoded in base32
-     * @param timeStepInSeconds Time interval in between OTPs
-     * @throws Exception TBD
-     */
-    private TOTP(String base32EncodedSecret, long timeStepInSeconds)
-            throws Exception {
+    private String password = null;
 
-    }
-
-    private TOTP() {
-
-    }
+    private TOTP() { }
 
     public static TOTP getInstance() {
         return instance;
@@ -40,7 +37,28 @@ public class TOTP {
     }
 
     public void ResetAuth() {
+        key = null;
         validated = false;
+    }
+
+    public void setPass(String password) {
+        this.password = password;
+    }
+
+    private void getKey() {
+        AuthController ctrl = AuthController.getInstance();
+        Optional<UserModel> user = ctrl.getUser();
+
+        user.ifPresent(u -> {
+           byte[] enc = u.getTotpSecretEncrypted();
+
+           try {
+               String base32Secret = TOTPKeyManager.decryptSecret(enc, password);
+               key = new Base32(Base32.Alphabet.BASE32, false, false).fromString(base32Secret);
+           } catch (Exception e) {
+               System.out.println("Error decrypting key: " + e.getMessage());
+           }
+        });
     }
 
     /**
@@ -50,7 +68,18 @@ public class TOTP {
      * @return TOTP code
      */
     private String getTOTPCodeFromHash(byte[] hash) {
-        return null;
+        // Dynamic truncation: usa os 4 bits menos significativos do último byte como offset
+        int offset = hash[hash.length - 1] & 0x0F;
+
+        // Extrai 4 bytes a partir do offset, mascarando o bit de sinal do primeiro
+        int binary = ((hash[offset]     & 0x7F) << 24)
+                | ((hash[offset + 1] & 0xFF) << 16)
+                | ((hash[offset + 2] & 0xFF) <<  8)
+                |  (hash[offset + 3] & 0xFF);
+
+        // Reduz para 6 dígitos e formata com zero-padding
+        int otp = binary % 1_000_000;
+        return String.format("%06d", otp);
     }
 
     /**
@@ -60,7 +89,13 @@ public class TOTP {
      * @return HMAC-SHA1 hash
      */
     private byte[] HMAC_SHA1(byte[] counter, byte[] keyByteArray) {
-        return null;
+        try {
+            Mac mac = Mac.getInstance("HmacSHA1");
+            mac.init(new SecretKeySpec(keyByteArray, "HmacSHA1"));
+            return mac.doFinal(counter);
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            throw new RuntimeException("Erro ao calcular HMAC-SHA1", e);
+        }
     }
 
     /**
@@ -70,17 +105,11 @@ public class TOTP {
      * @return TOTP code
      */
     private String TOTPCode(long timeInterval) {
-        return null;
+        // Converte o intervalo de tempo em array de 8 bytes (big-endian)
+        byte[] counter = ByteBuffer.allocate(8).putLong(timeInterval).array();
+        byte[] hash = HMAC_SHA1(counter, key);
+        return getTOTPCodeFromHash(hash);
     }
-
-    /**
-     * Metodo que é utilizado para solicitar a geração do código TOTP.
-     * @return TOTP code
-     */
-    public String generateCode() {
-        return null;
-    }
-    //
 
     /**
      * Metodo que é utilizado para validar um código TOTP (inputTOTP).
@@ -89,8 +118,47 @@ public class TOTP {
      * @param inputTOTP Input TOTP code
      */
     public void validateCode(String inputTOTP) {
+        if (key == null) {
+            getKey();
+            if (key == null) {
+                validated = false;
+                feedbackMessage = "An error has occurred while validating the TOTP code";
+                return;
+            }
+        }
+        long timeInterval = System.currentTimeMillis() / 1000L / 30L;
 
+        // Aceita o intervalo atual e os vizinhos imediatos (±30 s de tolerância)
+        for (long delta = -1; delta <= 1; delta++) {
+            if (TOTPCode(timeInterval + delta).equals(inputTOTP)) {
+                validated = true;
+                feedbackMessage = "";
+                return;
+            }
+        }
 
-        validated = true;
+        validated = false;
+        feedbackMessage = "Incorrect TOTP code";
+        updateErrorCount();
+    }
+
+    public String getFeedbackMessage() {
+        return feedbackMessage;
+    }
+
+    private void updateErrorCount() {
+        Optional<UserModel> user = AuthController.getInstance().getUser();
+        user.ifPresent(u -> {
+            int err = u.getErroToken();
+            err++;
+            if (err >= 3) {
+                u.setBloqueadoAte(Timestamp.valueOf(LocalDateTime.now().plusMinutes(2)));
+                AuthController auth = AuthController.getInstance();
+                auth.resetAuth();
+                err = 0;
+            }
+            u.setErroToken(err);
+            UserDAO.updateUser(u);
+        });
     }
 }
