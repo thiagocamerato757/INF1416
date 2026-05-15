@@ -1,5 +1,5 @@
 package model;
-import java.time.LocalDateTime;
+import java.sql.Timestamp;
 
 /**
  * Reflects de Usuarios table in the database.
@@ -15,7 +15,7 @@ public class UserModel {
     private Integer kid;
     private int erroSenha;
     private int erroToken;
-    private LocalDateTime bloqueadoAte;
+    private Timestamp bloqueadoAte;
     private int totalAcessos;
     private int totalConsultas;
 
@@ -93,11 +93,11 @@ public class UserModel {
         this.erroToken = erroToken;
     }
 
-    public LocalDateTime getBloqueadoAte() {
+    public Timestamp getBloqueadoAte() {
         return this.bloqueadoAte;
     }
 
-    public void setBloqueadoAte(LocalDateTime bloqueadoAte) {
+    public void setBloqueadoAte(Timestamp bloqueadoAte) {
         this.bloqueadoAte = bloqueadoAte;
     }
 

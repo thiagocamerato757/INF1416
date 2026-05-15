@@ -62,11 +62,18 @@ public class UserDAO {
 
             if (resultSet != null && resultSet.next()) {
                 user = new UserModel();
+                user.setUid(resultSet.getInt("UID"));
                 user.setLogin(resultSet.getString("login"));
                 user.setNome(resultSet.getString("nome"));
                 user.setSenhaBcrypt(resultSet.getString("senha_bcrypt"));
                 user.setTotpSecretEncrypted(resultSet.getBytes("totp_secret_encrypted"));
                 user.setGrupoId(resultSet.getInt("grupo_id"));
+                user.setKid(resultSet.getInt("KID"));
+                user.setErroSenha(resultSet.getInt("erro_senha"));
+                user.setErroToken(resultSet.getInt("erro_token"));
+                user.setBloqueadoAte(resultSet.getTimestamp("bloqueado_ate"));
+                user.setTotalAcessos(resultSet.getInt("total_acessos"));
+                user.setTotalConsultas(resultSet.getInt("total_consultas"));
             }
         }
         catch (SQLException ex) {
@@ -74,6 +81,30 @@ public class UserDAO {
         }
 
         return user;
+    }
+
+    public static void updateUser(UserModel user) {
+        String sql = "UPDATE Usuarios SET login = ?, nome = ?, senha_bcrypt = ?, totp_secret_encrypted = ?, erro_senha = ?, erro_token = ?, bloqueado_ate = ?, total_acessos = ?, total_consultas = ? WHERE UID = ?";
+
+        try (Connection conn = DataBaseStarter.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, user.getLogin());
+            stmt.setString(2, user.getNome());
+            stmt.setString(3, user.getSenhaBcrypt());
+            stmt.setBytes(4, user.getTotpSecretEncrypted());
+            stmt.setInt(5, user.getErroSenha());
+            stmt.setInt(6, user.getErroToken());
+            stmt.setTimestamp(7, user.getBloqueadoAte());
+            stmt.setInt(8, user.getTotalAcessos());
+            stmt.setInt(9, user.getTotalConsultas());
+            stmt.setInt(10, user.getUid()); // WHERE
+
+            stmt.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

@@ -39,6 +39,10 @@ public class TOTP {
         return validated;
     }
 
+    public void ResetAuth() {
+        validated = false;
+    }
+
     /**
      * Recebe o HASH HMAC-SHA1 e determina o código TOTP de 6 algarismos
      * decimais, prefixado com zeros quando necessário.

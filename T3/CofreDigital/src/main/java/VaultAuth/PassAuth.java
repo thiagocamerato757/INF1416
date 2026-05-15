@@ -1,10 +1,17 @@
 package VaultAuth;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.temporal.TemporalAmount;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 
+import crypto.PasswordUtil;
+import db.dao.UserDAO;
 import model.UserModel;
 import org.bouncycastle.crypto.generators.OpenBSDBCrypt;
 import java.security.SecureRandom;
@@ -14,8 +21,6 @@ import java.util.Optional;
  * PassAuth is a class dedicated to check and validate the input password compared to the hash (+ salt) stored
  */
 public class PassAuth {
-    // UserEntry = reference to user entry from sql
-
     /**
      *  Instance of PassAuth
      */
@@ -23,11 +28,12 @@ public class PassAuth {
 
     private static boolean validated = false;
 
+    private String feedbackMessage = "";
+
     /**
      * Constructor
      */
     private PassAuth() {
-        // get sql instance
     }
 
     /**
@@ -58,17 +64,23 @@ public class PassAuth {
     public void validatePassword(List<String> possiblePasswords) {
         AuthController auth = AuthController.getInstance();
         Optional<UserModel> user = auth.getUser();
-        if (!user.isPresent()) return;
+        if (!user.isPresent()) {
+            feedbackMessage = "ERROR: User not found";
+            return;
+        }
 
         String hash = user.get().getSenhaBcrypt();
 
         if (possiblePasswords != null) {
-            validated = possiblePasswords.parallelStream().anyMatch(t -> OpenBSDBCrypt.checkPassword(hash, t.getBytes()));
+            validated = possiblePasswords.parallelStream().anyMatch(t -> PasswordUtil.checkPassword(hash, t));
             if (validated) return;
-
-            // info.setText("password incorrect");
-            updatePassError();
         }
+        feedbackMessage = "Password incorrect";
+        updatePassError();
+    }
+
+    public void ResetAuth() {
+        validated = false;
     }
 
     /**
@@ -99,10 +111,25 @@ public class PassAuth {
         return passes;
     }
 
+    public String getFeedbackMessage() {
+        return feedbackMessage;
+    }
+
     /**
      * Adds an Error count
      */
     private void updatePassError() {
-
+        Optional<UserModel> user = AuthController.getInstance().getUser();
+        user.ifPresent(u -> {
+            int err = u.getErroSenha();
+            err++;
+            if (err % 3 == 0) {
+                u.setBloqueadoAte(Timestamp.valueOf(LocalDateTime.now().plusMinutes(2)));
+                AuthController auth = AuthController.getInstance();
+                auth.resetAuth();
+            }
+            u.setErroSenha(err);
+            UserDAO.updateUser(u);
+        });
     }
 }

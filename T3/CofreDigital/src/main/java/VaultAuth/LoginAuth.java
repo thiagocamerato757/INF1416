@@ -4,6 +4,7 @@ import db.dao.UserDAO;
 import model.UserModel;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 /**
  * LoginAuth class is meant to check if the email is of a valid user
@@ -42,7 +43,7 @@ public class LoginAuth {
             return;
         }
         // checks if timed out
-        if (user.getBloqueadoAte() != null && user.getBloqueadoAte().isAfter(LocalDateTime.now())) {
+        if (user.getBloqueadoAte() != null && user.getBloqueadoAte().toLocalDateTime().isAfter(LocalDateTime.now())) {
             feedbackMessage = "Usuário bloqueado até " + user.getBloqueadoAte().toString();
             return;
         }
@@ -57,6 +58,10 @@ public class LoginAuth {
 
     public UserModel getUser() {
         return user;
+    }
+
+    public void ResetAuth() {
+        validated = false;
     }
 
     private void setUser(UserModel authenticatingUser) {

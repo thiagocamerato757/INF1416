@@ -1,6 +1,7 @@
 package VaultAuth;
 
 import VaultAuth.UI.AuthFrame;
+import VaultAuth.UI.LoginPanel;
 import VaultAuth.UI.PassPanel;
 import VaultAuth.UI.TOTPPanel;
 import model.UserModel;
@@ -84,9 +85,18 @@ public class AuthController {
         return user;
     }
 
-    private void resetAuth() {
+    public void resetAuth() {
+        LoginAuth loginAuth = LoginAuth.getInstance();
+        loginAuth.ResetAuth();
+
+        PassAuth passAuth = PassAuth.getInstance();
+        passAuth.ResetAuth();
+
+        TOTP totp = TOTP.getInstance();
+        totp.ResetAuth();
+
         authPhase = AuthPhase.EMAIL;
         user = Optional.empty();
-        NextPhase();
+        frame.setPanel(new LoginPanel());
     }
 }
