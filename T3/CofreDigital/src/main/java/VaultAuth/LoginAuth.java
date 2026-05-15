@@ -19,7 +19,6 @@ public class LoginAuth {
      * Constructor
      */
     private LoginAuth() {
-        // get sql instance
     }
 
     public static LoginAuth getInstance() {

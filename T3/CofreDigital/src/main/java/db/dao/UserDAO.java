@@ -108,6 +108,38 @@ public class UserDAO {
     }
 
     /**
+     * Gets the first registered user (lowest UID), who is the administrator.
+     *
+     * @return the first UserModel if exists, null otherwise
+     */
+    public static UserModel getFirstUser() {
+        String sql = "SELECT * FROM Usuarios ORDER BY UID ASC LIMIT 1";
+        try (Connection conn = DataBaseStarter.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet resultSet = stmt.executeQuery()) {
+            if (resultSet.next()) {
+                UserModel user = new UserModel();
+                user.setUid(resultSet.getInt("UID"));
+                user.setLogin(resultSet.getString("login"));
+                user.setNome(resultSet.getString("nome"));
+                user.setSenhaBcrypt(resultSet.getString("senha_bcrypt"));
+                user.setTotpSecretEncrypted(resultSet.getBytes("totp_secret_encrypted"));
+                user.setGrupoId(resultSet.getInt("grupo_id"));
+                user.setKid(resultSet.getInt("KID"));
+                user.setErroSenha(resultSet.getInt("erro_senha"));
+                user.setErroToken(resultSet.getInt("erro_token"));
+                user.setBloqueadoAte(resultSet.getTimestamp("bloqueado_ate"));
+                user.setTotalAcessos(resultSet.getInt("total_acessos"));
+                user.setTotalConsultas(resultSet.getInt("total_consultas"));
+                return user;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
     * Checks if there are any users in the Usuarios table.
     *
     * @return true if at least one user exists, false otherwise

@@ -1,30 +1,34 @@
 import db.DataBaseStarter;
+import db.Logger;
+import db.dao.UserDAO;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import java.security.Security;
 import javax.swing.*;
 
+import VaultAuth.AdminController;
 import VaultAuth.AuthController;
 
-/**
- * Main entry point for the Cofre-Digital application.
- * Currently only tests the database connection.
- */
 public class DigitalVault {
 
     public static void main(String[] args) {
-        // Register Bouncy Castle security provider (required for bcrypt)
         Security.addProvider(new BouncyCastleProvider());
 
-        // Test database connection
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            AdminController.clearAdminSecretPhrase();
+        }));
+
         DataBaseStarter.testConnection();
 
-        // UI init
         SwingUtilities.invokeLater(() -> {
-            AuthController controller = AuthController.getInstance();
-            JFrame frame = controller.getAuthFrame();
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.setSize(400, 300);
-            frame.setVisible(true);
+            Logger.log(1001);
+
+            if (UserDAO.checkAnyUser()) {
+                VaultAuth.UI.AdminLoginFrame loginFrame = new VaultAuth.UI.AdminLoginFrame();
+                loginFrame.setVisible(true);
+            } else {
+                VaultAuth.UI.AdminSetupFrame setupFrame = new VaultAuth.UI.AdminSetupFrame();
+                setupFrame.setVisible(true);
+            }
         });
     }
 }
