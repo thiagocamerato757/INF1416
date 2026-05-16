@@ -2,10 +2,13 @@ package VaultAuth.UI;
 
 import UI.UIUtils;
 import VaultAuth.AdminController;
+import logger.Logger;
 import setup.init;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class AdminLoginFrame extends JFrame {
     private JPasswordField secretPhraseField;
@@ -13,7 +16,14 @@ public class AdminLoginFrame extends JFrame {
 
     public AdminLoginFrame() {
         super("Validação do Administrador");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                Logger.log(1002);
+                System.exit(0);
+            }
+        });
         setMinimumSize(new Dimension(560, 320));
         setup();
         pack();

@@ -7,10 +7,13 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import crypto.PasswordUtil;
+import logger.Logger;
 import setup.init;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.ByteArrayOutputStream;
 
 public class AdminSetupFrame extends JFrame {
@@ -23,7 +26,14 @@ public class AdminSetupFrame extends JFrame {
 
     public AdminSetupFrame() {
         super("Cadastro do Administrador");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                Logger.log(1002);
+                System.exit(0);
+            }
+        });
         setMinimumSize(new Dimension(680, 460));
         setup();
         pack();

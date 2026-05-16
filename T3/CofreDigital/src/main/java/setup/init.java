@@ -9,7 +9,6 @@ public class init {
         SwingUtilities.invokeLater(() -> {
             AuthController controller = AuthController.getInstance();
             JFrame frame = controller.getAuthFrame();
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.pack();
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
