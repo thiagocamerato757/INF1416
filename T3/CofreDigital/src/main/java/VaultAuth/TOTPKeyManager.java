@@ -4,7 +4,7 @@ import Cryptography.Base32;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
-import java.security.MessageDigest;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 
 public class TOTPKeyManager {
@@ -39,7 +39,7 @@ public class TOTPKeyManager {
      */
     private static SecretKeySpec deriveAESKey(String password) throws Exception {
         SecureRandom sr = SecureRandom.getInstance(PRNG_ALGO);
-        sr.setSeed(password.getBytes("UTF-8"));
+        sr.setSeed(password.getBytes(StandardCharsets.UTF_8));
         byte[] keyBytes = new byte[AES_BITS];
         sr.nextBytes(keyBytes);
         return new SecretKeySpec(keyBytes, "AES");
@@ -57,7 +57,7 @@ public class TOTPKeyManager {
             throws Exception {
         Cipher cipher = Cipher.getInstance(AES_ALGO);
         cipher.init(Cipher.ENCRYPT_MODE, deriveAESKey(password));
-        return cipher.doFinal(base32Secret.getBytes("UTF-8"));
+        return cipher.doFinal(base32Secret.getBytes(StandardCharsets.UTF_8));
     }
 
     /**
@@ -68,6 +68,6 @@ public class TOTPKeyManager {
             throws Exception {
         Cipher cipher = Cipher.getInstance(AES_ALGO);
         cipher.init(Cipher.DECRYPT_MODE, deriveAESKey(password));
-        return new String(cipher.doFinal(encryptedSecret), "UTF-8");
+        return new String(cipher.doFinal(encryptedSecret), StandardCharsets.UTF_8);
     }
 }

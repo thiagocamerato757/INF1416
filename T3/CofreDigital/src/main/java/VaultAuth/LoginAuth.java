@@ -1,10 +1,10 @@
 package VaultAuth;
 
 import db.dao.UserDAO;
+import logger.Logger;
 import model.UserModel;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 /**
  * LoginAuth class is meant to check if the email is of a valid user
@@ -15,11 +15,7 @@ public class LoginAuth {
     private String feedbackMessage = "";
     private UserModel user;
 
-    /**
-     * Constructor
-     */
-    private LoginAuth() {
-    }
+    private LoginAuth() { }
 
     public static LoginAuth getInstance() {
         return instance;
@@ -29,25 +25,23 @@ public class LoginAuth {
         return validated;
     }
 
-    /**
-     * Validates the existence of a user with the same input email
-     * @param email Input email
-     */
     public void validateLogin(String email) {
-        // sql call to find email
-        UserModel user = UserDAO.getUserByLogin(email);
-        // checks if exist
-        if (user == null) {
+        validated = false;
+        feedbackMessage = "";
+        UserModel foundUser = UserDAO.getUserByLogin(email);
+        if (foundUser == null) {
+            Logger.log(2005, null, email);
             feedbackMessage = "Invalid email";
             return;
         }
-        // checks if timed out
-        if (user.getBloqueadoAte() != null && user.getBloqueadoAte().toLocalDateTime().isAfter(LocalDateTime.now())) {
-            feedbackMessage = "Usuário bloqueado até " + user.getBloqueadoAte().toString();
+        if (foundUser.getBloqueadoAte() != null && foundUser.getBloqueadoAte().toLocalDateTime().isAfter(LocalDateTime.now())) {
+            Logger.log(2004, foundUser.getUid(), foundUser.getLogin());
+            feedbackMessage = "Usuário bloqueado até " + foundUser.getBloqueadoAte().toString();
             return;
         }
-        // else
-        setUser(user);
+        setUser(foundUser);
+        Logger.log(2003, foundUser.getUid(), foundUser.getLogin());
+        Logger.log(2002, foundUser.getUid(), foundUser.getLogin());
         validated = true;
     }
 
@@ -61,6 +55,8 @@ public class LoginAuth {
 
     public void ResetAuth() {
         validated = false;
+        feedbackMessage = "";
+        user = null;
     }
 
     private void setUser(UserModel authenticatingUser) {

@@ -78,7 +78,7 @@ public class AdminController {
             return "Invalid private key or wrong secret phrase: " + e.getMessage();
         }
 
-        if (!validateKeyPair(privateKey, cert.getPublicKey())) {
+        if (validateKeyPair(privateKey, cert.getPublicKey())) {
             return "Private key does not match certificate";
         }
 
@@ -136,6 +136,7 @@ public class AdminController {
         if (uid <= 0) {
             return "Failed to create administrator user";
         }
+        UserDAO.updateKeypairUID(kid, uid);
 
         adminSecretPhrase = secretPhrase;
         lastGeneratedTotpSecret = totpSecret;
@@ -185,12 +186,12 @@ public class AdminController {
             return "Failed to parse stored certificate";
         }
 
-        if (!validateKeyPair(privateKey, cert.getPublicKey())) {
+        if (validateKeyPair(privateKey, cert.getPublicKey())) {
             return "Private key does not match certificate";
         }
 
         adminSecretPhrase = secretPhrase;
-        Logger.log(1006, admin.getUid(), "Partida do sistema iniciada para operação normal pelos usuários.");
+        Logger.log(1006, admin.getUid(), "Partida do sistema iniciada para operaÃƒÂ§ÃƒÂ£o normal pelos usuÃƒÂ¡rios.");
         return null;
     }
 
@@ -215,9 +216,9 @@ public class AdminController {
             Signature verifier = Signature.getInstance("SHA256withRSA");
             verifier.initVerify(publicKey);
             verifier.update(data);
-            return verifier.verify(signature);
+            return !verifier.verify(signature);
         } catch (Exception e) {
-            return false;
+            return true;
         }
     }
 
@@ -245,7 +246,7 @@ public class AdminController {
             }
         } catch (CertificateParsingException ignored) {}
 
-        // 2. Subject DN — fallback para certificados legados
+        // 2. Subject DN Ã¢â‚¬â€ fallback para certificados legados
         String dn = cert.getSubjectX500Principal().getName(X500Principal.RFC2253);
         try {
             LdapName ldapName = new LdapName(dn);
@@ -255,7 +256,7 @@ public class AdminController {
                 }
             }
         } catch (InvalidNameException e) {
-            // Parse manual: split respeita vírgulas dentro de aspas
+            // Parse manual: split respeita vÃƒÂ­rgulas dentro de aspas
             for (String part : dn.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)")) {
                 part = part.trim();
                 int eq = part.indexOf('=');
@@ -276,14 +277,26 @@ public class AdminController {
     }
 
     private static String rdnValueToString(Object value) {
+        String text;
         if (value instanceof String) {
-            return (String) value;
+            text = (String) value;
+        } else if (value instanceof byte[]) {
+            text = decodeAsn1String((byte[]) value);
+        } else {
+            text = value.toString();
         }
-        if (value instanceof byte[]) {
-            // ASN.1 UTF8String
-            return new String((byte[]) value, StandardCharsets.UTF_8);
+        return UserDAO.normalizeLogin(text);
+    }
+
+    private static String decodeAsn1String(byte[] bytes) {
+        if (bytes.length >= 2) {
+            int tag = bytes[0] & 0xFF;
+            int len = bytes[1] & 0xFF;
+            if ((tag == 0x16 || tag == 0x0C || tag == 0x13 || tag == 0x14) && len <= bytes.length - 2) {
+                return new String(bytes, 2, len, StandardCharsets.UTF_8);
+            }
         }
-        return value.toString();
+        return new String(bytes, StandardCharsets.UTF_8);
     }
 
     private static String decodeHexValue(String value) {

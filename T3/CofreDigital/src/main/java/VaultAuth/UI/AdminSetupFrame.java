@@ -1,12 +1,13 @@
 package VaultAuth.UI;
 
-import crypto.PasswordUtil;
-import setup.init;
+import UI.UIUtils;
 import VaultAuth.AdminController;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
+import crypto.PasswordUtil;
+import setup.init;
 
 import javax.swing.*;
 import java.awt.*;
@@ -23,73 +24,47 @@ public class AdminSetupFrame extends JFrame {
     public AdminSetupFrame() {
         super("Cadastro do Administrador");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(500, 400);
-        setLocationRelativeTo(null);
+        setMinimumSize(new Dimension(680, 460));
         setup();
+        pack();
+        setLocationRelativeTo(null);
     }
 
     private void setup() {
-        setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
+        JPanel container = UIUtils.createCenteredContainer();
+        JPanel card = UIUtils.createContentCard(620);
 
-        certField = new JTextField(40);
-        keyField = new JTextField(40);
-        secretPhraseField = new JPasswordField(40);
-        passwordField = new JPasswordField(40);
-        confirmPasswordField = new JPasswordField(40);
-        infoLabel = new JLabel("");
+        JPanel header = UIUtils.createWhitePanel(new GridLayout(0, 1, 0, UIUtils.PADDING_SMALL), 0);
+        header.add(UIUtils.createTitleLabel("Cadastro Inicial do Administrador"));
+        header.add(UIUtils.createLabel(UIUtils.htmlWrap("Selecione o certificado, a chave privada e informe as credenciais iniciais do cofre.", 560)));
+        card.add(header, BorderLayout.NORTH);
 
-        add(createFileRow("Certificate (PEM):", certField, this::browseCert));
-        add(createFileRow("Private Key:", keyField, this::browseKey));
-        add(createFieldRow("Secret Phrase:", secretPhraseField));
-        add(createFieldRow("Personal Password:", passwordField));
-        add(createFieldRow("Confirm Password:", confirmPasswordField));
+        certField = UIUtils.createTextField(32);
+        keyField = UIUtils.createTextField(32);
+        secretPhraseField = UIUtils.createPasswordField(32);
+        passwordField = UIUtils.createPasswordField(16);
+        confirmPasswordField = UIUtils.createPasswordField(16);
 
-        JPanel buttonRow = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JButton submitBtn = new JButton("Register");
+        JPanel form = UIUtils.createFormPanel();
+        UIUtils.addFormRow(form, 0, "Certificado (PEM):", UIUtils.createPathFieldWithButton(certField, UIUtils.createBrowseFileButton(this, certField)));
+        UIUtils.addFormRow(form, 1, "Chave privada:", UIUtils.createPathFieldWithButton(keyField, UIUtils.createBrowseFileButton(this, keyField)));
+        UIUtils.addFormRow(form, 2, "Frase secreta:", secretPhraseField);
+        UIUtils.addFormRow(form, 3, "Senha pessoal:", passwordField);
+        UIUtils.addFormRow(form, 4, "Confirmar senha:", confirmPasswordField);
+        card.add(form, BorderLayout.CENTER);
+
+        JButton submitBtn = UIUtils.createButton("Cadastrar", UIUtils.COLOR_SUCCESS);
         submitBtn.addActionListener(e -> submitSetup());
-        buttonRow.add(submitBtn);
-        add(buttonRow);
+        infoLabel = UIUtils.createLabel("");
+        infoLabel.setForeground(UIUtils.COLOR_DANGER);
 
-        JPanel infoRow = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        infoLabel.setForeground(Color.RED);
-        infoRow.add(infoLabel);
-        add(infoRow);
-    }
+        JPanel footer = UIUtils.createWhitePanel(new BorderLayout(), 0);
+        footer.add(UIUtils.createButtonRow(submitBtn), BorderLayout.NORTH);
+        footer.add(infoLabel, BorderLayout.CENTER);
+        card.add(footer, BorderLayout.SOUTH);
 
-    private JPanel createFileRow(String label, JTextField field, Runnable browseAction) {
-        JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JLabel lbl = new JLabel(label);
-        lbl.setPreferredSize(new Dimension(120, 25));
-        row.add(lbl);
-        row.add(field);
-        JButton browseBtn = new JButton("Browse");
-        browseBtn.addActionListener(e -> browseAction.run());
-        row.add(browseBtn);
-        return row;
-    }
-
-    private JPanel createFieldRow(String label, JPasswordField field) {
-        JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JLabel lbl = new JLabel(label);
-        lbl.setPreferredSize(new Dimension(120, 25));
-        row.add(lbl);
-        field.setPreferredSize(new Dimension(300, 25));
-        row.add(field);
-        return row;
-    }
-
-    private void browseCert() {
-        JFileChooser chooser = new JFileChooser();
-        if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            certField.setText(chooser.getSelectedFile().getAbsolutePath());
-        }
-    }
-
-    private void browseKey() {
-        JFileChooser chooser = new JFileChooser();
-        if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            keyField.setText(chooser.getSelectedFile().getAbsolutePath());
-        }
+        UIUtils.addCenteredCard(container, card);
+        setContentPane(container);
     }
 
     private void submitSetup() {
@@ -100,65 +75,60 @@ public class AdminSetupFrame extends JFrame {
         String confirmPassword = new String(confirmPasswordField.getPassword());
 
         if (certPath.isEmpty() || keyPath.isEmpty() || secretPhrase.isEmpty() || password.isEmpty()) {
-            infoLabel.setText("All fields are required");
+            infoLabel.setText("Todos os campos sao obrigatorios.");
             return;
         }
-
         if (!PasswordUtil.isValidPersonalPassword(password)) {
-            infoLabel.setText("Personal password is not valid, use from 8 to 10 digits and no repeating characters");
+            infoLabel.setText("A senha deve ter 8 a 10 digitos e nao pode repetir todos os numeros.");
             return;
         }
-
         if (!password.equals(confirmPassword)) {
-            infoLabel.setText("Passwords do not match");
+            infoLabel.setText("As senhas nao coincidem.");
             return;
         }
 
         String error = AdminController.setupAdmin(certPath, keyPath, secretPhrase, password);
         if (error != null) {
-            infoLabel.setText(error);
+            infoLabel.setText(UIUtils.htmlWrap(error, 560));
             return;
         }
 
-        String totpSecret = AdminController.getLastGeneratedTotpSecret();
-        showTotpDialog(totpSecret);
-
+        showTotpDialog(AdminController.getLastGeneratedTotpSecret());
         dispose();
         init.startAuth();
     }
 
     private void showTotpDialog(String totpSecret) {
         JDialog dialog = new JDialog(this, "TOTP Secret", true);
-        dialog.setSize(400, 400);
-        dialog.setLocationRelativeTo(this);
-        dialog.setLayout(new BoxLayout(dialog.getContentPane(), BoxLayout.Y_AXIS));
+        dialog.setMinimumSize(new Dimension(440, 430));
+        dialog.setLayout(new BorderLayout(UIUtils.PADDING_MEDIUM, UIUtils.PADDING_MEDIUM));
 
-        JLabel textLabel = new JLabel("Secret key (BASE32): " + totpSecret);
-        textLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        dialog.add(textLabel);
+        JTextArea secret = UIUtils.createTextArea(2, 32);
+        secret.setText(totpSecret);
+        secret.setEditable(false);
+        JPanel top = UIUtils.createWhitePanel(new BorderLayout(UIUtils.PADDING_SMALL, UIUtils.PADDING_SMALL), UIUtils.PADDING_LARGE);
+        top.add(UIUtils.createLabel("Secret key (BASE32):"), BorderLayout.NORTH);
+        top.add(new JScrollPane(secret), BorderLayout.CENTER);
+        dialog.add(top, BorderLayout.NORTH);
 
         try {
             String uri = "otpauth://totp/CofreDigital:admin?secret=" + totpSecret + "&issuer=CofreDigital";
             QRCodeWriter writer = new QRCodeWriter();
-            BitMatrix matrix = writer.encode(uri, BarcodeFormat.QR_CODE, 200, 200);
+            BitMatrix matrix = writer.encode(uri, BarcodeFormat.QR_CODE, 220, 220);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             MatrixToImageWriter.writeToStream(matrix, "PNG", baos);
-            byte[] qrBytes = baos.toByteArray();
-            ImageIcon qrIcon = new ImageIcon(qrBytes);
-            JLabel qrLabel = new JLabel(qrIcon);
-            qrLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-            dialog.add(qrLabel);
+            JLabel qrLabel = new JLabel(new ImageIcon(baos.toByteArray()));
+            qrLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            dialog.add(qrLabel, BorderLayout.CENTER);
         } catch (Exception e) {
-            JLabel fallback = new JLabel("QR Code generation failed");
-            fallback.setAlignmentX(Component.CENTER_ALIGNMENT);
-            dialog.add(fallback);
+            dialog.add(UIUtils.createLabel("QR Code generation failed"), BorderLayout.CENTER);
         }
 
-        JButton okBtn = new JButton("OK");
-        okBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JButton okBtn = UIUtils.createButton("OK", UIUtils.COLOR_SUCCESS);
         okBtn.addActionListener(e -> dialog.dispose());
-        dialog.add(okBtn);
-
+        dialog.add(UIUtils.createButtonRow(okBtn), BorderLayout.SOUTH);
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
     }
 }

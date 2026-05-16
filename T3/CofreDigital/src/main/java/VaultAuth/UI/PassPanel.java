@@ -1,7 +1,9 @@
 package VaultAuth.UI;
 
+import UI.UIUtils;
 import VaultAuth.AuthController;
 import VaultAuth.PassAuth;
+import logger.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,33 +19,31 @@ public class PassPanel extends JPanel {
     private String passPlaceholder = "";
 
     public PassPanel() {
-        super();
+        super(new BorderLayout());
+        AuthController.getInstance().getUser().ifPresent(u -> Logger.log(3001, u.getUid(), u.getLogin()));
         setup();
     }
 
     private void setup() {
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setBackground(UIUtils.COLOR_BACKGROUND);
+        JPanel container = UIUtils.createCenteredContainer();
+        JPanel card = UIUtils.createContentCard(560);
 
-        JPanel topRow = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        topRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        JPanel header = UIUtils.createWhitePanel(new GridLayout(0, 1, 0, UIUtils.PADDING_SMALL), 0);
+        header.add(UIUtils.createTitleLabel("Senha Pessoal"));
+        header.add(UIUtils.createLabel("Use o teclado virtual numérico para informar sua senha."));
+        card.add(header, BorderLayout.NORTH);
 
-        JLabel passLabel = new JLabel("Password:");
-        passField = new JPasswordField(passPlaceholder);
-        passField.setColumns(20);
+        passField = UIUtils.createPasswordField(18);
         passField.setEchoChar('*');
         passField.setEditable(false);
-        topRow.add(passLabel);
-        topRow.add(passField);
+        JPanel form = UIUtils.createFormPanel();
+        UIUtils.addFormRow(form, 0, "Senha:", passField);
 
-        JPanel buttonsRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
-        buttonsRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
-
-        Dimension buttonSize = new Dimension(70, 40);
+        JPanel buttonsRow = UIUtils.createPanel(new GridLayout(1, 5, UIUtils.PADDING_SMALL, 0), UIUtils.PADDING_SMALL);
+        buttonsRow.setOpaque(false);
         for (int i = 0; i < 5; i++) {
-            JButton button = new JButton();
-            button.setPreferredSize(buttonSize);
-            button.setMinimumSize(buttonSize);
-            button.setMaximumSize(buttonSize);
+            JButton button = UIUtils.createButton("", UIUtils.COLOR_PRIMARY);
             buttons[i] = button;
             button.putClientProperty("index", i);
             button.addActionListener(e -> {
@@ -55,50 +55,45 @@ public class PassPanel extends JPanel {
             });
             buttonsRow.add(button);
         }
+        UIUtils.addFormRow(form, 1, "Teclado:", buttonsRow);
+        card.add(form, BorderLayout.CENTER);
 
-        JPanel proceedRow = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        proceedRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-        JButton proceed = new JButton("Proceed");
+        JButton clear = UIUtils.createButton("Limpar", UIUtils.COLOR_ACCENT);
+        clear.addActionListener(e -> clearPassword());
+        JButton proceed = UIUtils.createButton("Prosseguir", UIUtils.COLOR_SUCCESS);
         proceed.addActionListener(e -> {
             passPlaceholder = "";
             passField.setText(passPlaceholder);
             PassAuth passAuth = PassAuth.getInstance();
             passAuth.validatePassword(passAuth.prepPasswords(entries));
-
             info.setText(passAuth.getFeedbackMessage());
-
-            AuthController auth = AuthController.getInstance();
-            auth.Check();
+            AuthController.getInstance().Check();
             entries.clear();
         });
-        JButton clear = new JButton("Clear");
-        clear.addActionListener(e -> {
-            passPlaceholder = "";
-            passField.setText(passPlaceholder);
-        });
-        proceedRow.add(clear);
-        proceedRow.add(proceed);
-
-        JPanel infoRow = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        infoRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
-        info = new JLabel("");
-        infoRow.add(info);
-
-        add(topRow);
-        add(buttonsRow);
-        add(proceedRow);
-        add(infoRow);
+        info = UIUtils.createLabel("");
+        info.setForeground(UIUtils.COLOR_DANGER);
+        JPanel footer = UIUtils.createWhitePanel(new BorderLayout(), 0);
+        footer.add(UIUtils.createButtonRow(clear, proceed), BorderLayout.NORTH);
+        footer.add(info, BorderLayout.CENTER);
+        card.add(footer, BorderLayout.SOUTH);
 
         setupButtons();
+        UIUtils.addCenteredCard(container, card);
+        add(container, BorderLayout.CENTER);
+    }
+
+    private void clearPassword() {
+        passPlaceholder = "";
+        passField.setText(passPlaceholder);
+        entries.clear();
     }
 
     private void setupButtons() {
         Collections.shuffle(values);
         int index = 0;
         for (JButton button : buttons) {
-            button.setText(values.get(index) + " or " + values.get(index + 1));
+            button.setText(values.get(index) + " ou " + values.get(index + 1));
             index += 2;
         }
     }
-
 }

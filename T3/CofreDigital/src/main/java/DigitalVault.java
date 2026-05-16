@@ -6,16 +6,13 @@ import java.security.Security;
 import javax.swing.*;
 
 import VaultAuth.AdminController;
-import VaultAuth.AuthController;
 
 public class DigitalVault {
 
     public static void main(String[] args) {
         Security.addProvider(new BouncyCastleProvider());
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            AdminController.clearAdminSecretPhrase();
-        }));
+        Runtime.getRuntime().addShutdownHook(new Thread(AdminController::clearAdminSecretPhrase));
 
         DataBaseStarter.testConnection();
 

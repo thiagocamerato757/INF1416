@@ -1,7 +1,9 @@
 package VaultAuth.UI;
 
+import UI.UIUtils;
 import VaultAuth.AuthController;
 import VaultAuth.LoginAuth;
+import logger.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,43 +13,43 @@ public class LoginPanel extends JPanel {
     private JLabel info;
 
     public LoginPanel() {
-        super();
+        super(new BorderLayout());
+        Logger.log(2001, (String) null);
         setup();
     }
 
     private void setup() {
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setBackground(UIUtils.COLOR_BACKGROUND);
+        JPanel container = UIUtils.createCenteredContainer();
+        JPanel card = UIUtils.createContentCard(500);
 
-        JPanel emailRow = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JLabel emailLabel = new JLabel("Email:");
-        email = new JTextField(30);
-        emailRow.add(emailLabel);
-        emailRow.add(email);
+        JPanel header = UIUtils.createWhitePanel(new GridLayout(0, 1, 0, UIUtils.PADDING_SMALL), 0);
+        header.add(UIUtils.createTitleLabel("Autenticação"));
+        header.add(UIUtils.createLabel("Informe seu e-mail para iniciar o acesso ao Cofre Digital."));
+        card.add(header, BorderLayout.NORTH);
 
-        JPanel buttonRow = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JButton proceed = new JButton("Proceed");
+        email = UIUtils.createTextField(28);
+        JPanel form = UIUtils.createFormPanel();
+        UIUtils.addFormRow(form, 0, "E-mail:", email);
+        card.add(form, BorderLayout.CENTER);
+
+        JButton proceed = UIUtils.createButton("Prosseguir", UIUtils.COLOR_PRIMARY);
         proceed.addActionListener(e -> {
             LoginAuth auth = LoginAuth.getInstance();
-            auth.validateLogin(email.getText());
-
+            auth.validateLogin(email.getText().trim());
             email.setText("");
             info.setText(auth.getFeedbackMessage());
-
-            AuthController ctrl = AuthController.getInstance();
-            ctrl.Check();
+            AuthController.getInstance().Check();
         });
-        buttonRow.add(proceed);
+        info = UIUtils.createLabel("");
+        info.setForeground(UIUtils.COLOR_DANGER);
 
-        info = new JLabel("");
-        JPanel infoRow = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        infoRow.add(info);
+        JPanel footer = UIUtils.createWhitePanel(new BorderLayout(), 0);
+        footer.add(UIUtils.createButtonRow(proceed), BorderLayout.NORTH);
+        footer.add(info, BorderLayout.CENTER);
+        card.add(footer, BorderLayout.SOUTH);
 
-        emailRow.setPreferredSize(new Dimension(400, 40));
-        buttonRow.setPreferredSize(new Dimension(400, 40));
-        infoRow.setPreferredSize(new Dimension(400, 30));
-
-        add(emailRow);
-        add(buttonRow);
-        add(infoRow);
+        UIUtils.addCenteredCard(container, card);
+        add(container, BorderLayout.CENTER);
     }
 }

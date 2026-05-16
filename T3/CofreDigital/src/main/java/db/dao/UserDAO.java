@@ -22,7 +22,7 @@ public class UserDAO {
         try (Connection conn = DataBaseStarter.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            stmt.setString(1, user.getLogin());
+            stmt.setString(1, normalizeLogin(user.getLogin()));
             stmt.setString(2, user.getNome());
             stmt.setString(3, user.getSenhaBcrypt());
             stmt.setBytes (4, user.getTotpSecretEncrypted());
@@ -57,7 +57,7 @@ public class UserDAO {
         try (Connection conn = DataBaseStarter.getConnection();
              PreparedStatement statement = conn.prepareStatement(sql, Statement.NO_GENERATED_KEYS)) {
 
-            statement.setString(1, login);
+            statement.setString(1, normalizeLogin(login));
             ResultSet resultSet = statement.executeQuery();
 
             if (resultSet != null && resultSet.next()) {
@@ -80,7 +80,54 @@ public class UserDAO {
             LOGGER.log(Level.SEVERE, null, ex);
         }
 
+        if (user == null) {
+            user = getUserByNormalizedLogin(login);
+        }
         return user;
+    }
+
+    private static UserModel getUserByNormalizedLogin(String login) {
+        String sql = "SELECT * FROM Usuarios";
+        String wanted = normalizeLogin(login);
+        try (Connection conn = DataBaseStarter.getConnection();
+             PreparedStatement statement = conn.prepareStatement(sql);
+             ResultSet resultSet = statement.executeQuery()) {
+            while (resultSet.next()) {
+                String stored = normalizeLogin(resultSet.getString("login"));
+                if (stored.equalsIgnoreCase(wanted)) {
+                    UserModel user = new UserModel();
+                    user.setUid(resultSet.getInt("UID"));
+                    user.setLogin(stored);
+                    user.setNome(resultSet.getString("nome"));
+                    user.setSenhaBcrypt(resultSet.getString("senha_bcrypt"));
+                    user.setTotpSecretEncrypted(resultSet.getBytes("totp_secret_encrypted"));
+                    user.setGrupoId(resultSet.getInt("grupo_id"));
+                    user.setKid(resultSet.getInt("KID"));
+                    user.setErroSenha(resultSet.getInt("erro_senha"));
+                    user.setErroToken(resultSet.getInt("erro_token"));
+                    user.setBloqueadoAte(resultSet.getTimestamp("bloqueado_ate"));
+                    user.setTotalAcessos(resultSet.getInt("total_acessos"));
+                    user.setTotalConsultas(resultSet.getInt("total_consultas"));
+                    if (!stored.equals(resultSet.getString("login"))) {
+                        user.setLogin(stored);
+                        updateUser(user);
+                    }
+                    return user;
+                }
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+
+    public static String normalizeLogin(String login) {
+        if (login == null) return "";
+        java.util.regex.Matcher matcher = java.util.regex.Pattern
+                .compile("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}")
+                .matcher(login);
+        if (matcher.find()) return matcher.group().trim().toLowerCase();
+        return login.replaceAll("[\\p{Cntrl}]", "").trim().toLowerCase();
     }
 
     public static void updateUser(UserModel user) {
@@ -89,7 +136,7 @@ public class UserDAO {
         try (Connection conn = DataBaseStarter.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, user.getLogin());
+            stmt.setString(1, normalizeLogin(user.getLogin()));
             stmt.setString(2, user.getNome());
             stmt.setString(3, user.getSenhaBcrypt());
             stmt.setBytes(4, user.getTotpSecretEncrypted());
@@ -159,4 +206,45 @@ public class UserDAO {
         }
         return false;
     }
+    public static int countUsers() {
+        String sql = "SELECT COUNT(*) FROM Usuarios";
+        try (Connection conn = DataBaseStarter.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error counting users", e);
+        }
+        return 0;
+    }
+
+    public static int createKeypair(String certPem, byte[] encryptedPrivateKey) {
+        String sql = "INSERT INTO Chaveiro (certificado_pem, chave_privada_encrypted) VALUES (?, ?)";
+        try (Connection conn = DataBaseStarter.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, certPem);
+            stmt.setBytes(2, encryptedPrivateKey);
+            int rows = stmt.executeUpdate();
+            if (rows == 0) return -1;
+            try (ResultSet keys = stmt.getGeneratedKeys()) {
+                if (keys.next()) return keys.getInt(1);
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error creating keypair", e);
+        }
+        return -1;
+    }
+
+    public static void updateKeypairUID(int kid, int uid) {
+        String sql = "UPDATE Chaveiro SET UID = ? WHERE KID = ?";
+        try (Connection conn = DataBaseStarter.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, uid);
+            stmt.setInt(2, kid);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error updating keypair UID", e);
+        }
+    }
 }
+

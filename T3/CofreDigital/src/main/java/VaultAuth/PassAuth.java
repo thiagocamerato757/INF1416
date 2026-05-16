@@ -1,45 +1,27 @@
 package VaultAuth;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.time.Period;
-import java.time.temporal.TemporalAmount;
-import java.time.temporal.TemporalUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map.Entry;
-
 import crypto.PasswordUtil;
 import db.dao.UserDAO;
+import logger.Logger;
 import model.UserModel;
-import org.bouncycastle.crypto.generators.OpenBSDBCrypt;
-import java.security.SecureRandom;
+
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.Optional;
 
 /**
- * PassAuth is a class dedicated to check and validate the input password compared to the hash (+ salt) stored
+ * PassAuth checks the password candidates produced by the overloaded virtual keyboard.
  */
 public class PassAuth {
-    /**
-     *  Instance of PassAuth
-     */
     private static final PassAuth instance = new PassAuth();
-
     private static boolean validated = false;
-
     private String feedbackMessage = "";
 
-    /**
-     * Constructor
-     */
-    private PassAuth() {
-    }
+    private PassAuth() { }
 
-    /**
-     * Gets instantiation of PassAuth
-     * @return current instance
-     */
     public static PassAuth getInstance() {
         return instance;
     }
@@ -48,37 +30,33 @@ public class PassAuth {
         return validated;
     }
 
-    /**
-     * Transform the input password into a hash(+salt)-ed version, appropriate for comparing
-     * @param inputSequence Sequence of inputs from the virtual keyboard
-     * @return list of possible passwords
-     */
     public List<String> prepPasswords(List<Entry<Integer, Integer>> inputSequence) {
         if (!passwordSizeCheck(inputSequence.size())) return null;
         return genCombinations(inputSequence);
-    };
+    }
 
-    /**
-     * Checks if the calculated password hash is equal to the stored hash
-     */
     public void validatePassword(List<String> possiblePasswords) {
-        AuthController auth = AuthController.getInstance();
-        Optional<UserModel> user = auth.getUser();
+        validated = false;
+        feedbackMessage = "";
+        Optional<UserModel> user = AuthController.getInstance().getUser();
         if (!user.isPresent()) {
             feedbackMessage = "ERROR: User not found";
             return;
         }
 
         String hash = user.get().getSenhaBcrypt();
-
         if (possiblePasswords != null) {
             Optional<String> found = possiblePasswords.parallelStream()
                     .filter(t -> PasswordUtil.checkPassword(hash, t))
                     .findAny();
-
             String password = found.orElse(null);
             if (password != null) {
+                UserModel u = user.get();
+                u.setErroSenha(0);
+                UserDAO.updateUser(u);
                 TOTP.getInstance().setPass(password);
+                Logger.log(3003, u.getUid(), u.getLogin());
+                Logger.log(3002, u.getUid(), u.getLogin());
                 validated = true;
                 return;
             }
@@ -89,12 +67,9 @@ public class PassAuth {
 
     public void ResetAuth() {
         validated = false;
+        feedbackMessage = "";
     }
 
-    /**
-     * Checks if the input password is within the 8 to 10 size rule
-     * @return if the input password is from 8 to 10 size
-     */
     private boolean passwordSizeCheck(int passLen) {
         return passLen >= 8 && passLen <= 10;
     }
@@ -105,17 +80,16 @@ public class PassAuth {
         passes.add("");
 
         for (Entry<Integer, Integer> password : passwords) {
-            Integer A = password.getKey();
-            Integer B = password.getValue();
+            Integer a = password.getKey();
+            Integer b = password.getValue();
             for (String pass : passes) {
-                temp.add(pass + A);
-                temp.add(pass + B);
+                temp.add(pass + a);
+                temp.add(pass + b);
             }
             passes.clear();
             passes.addAll(temp);
             temp.clear();
         }
-
         return passes;
     }
 
@@ -123,22 +97,23 @@ public class PassAuth {
         return feedbackMessage;
     }
 
-    /**
-     * Adds an Error count
-     */
     private void updatePassError() {
         Optional<UserModel> user = AuthController.getInstance().getUser();
         user.ifPresent(u -> {
-            int err = u.getErroSenha();
-            err++;
+            int err = u.getErroSenha() + 1;
+            if (err == 1) Logger.log(3004, u.getUid(), u.getLogin());
+            if (err == 2) Logger.log(3005, u.getUid(), u.getLogin());
             if (err >= 3) {
+                Logger.log(3006, u.getUid(), u.getLogin());
+                Logger.log(3007, u.getUid(), u.getLogin());
                 u.setBloqueadoAte(Timestamp.valueOf(LocalDateTime.now().plusMinutes(2)));
-                AuthController auth = AuthController.getInstance();
-                auth.resetAuth();
                 err = 0;
             }
             u.setErroSenha(err);
             UserDAO.updateUser(u);
+            if (u.getBloqueadoAte() != null && u.getBloqueadoAte().toLocalDateTime().isAfter(LocalDateTime.now())) {
+                AuthController.getInstance().restartAuthentication();
+            }
         });
     }
 }

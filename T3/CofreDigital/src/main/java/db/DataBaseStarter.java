@@ -54,16 +54,12 @@ public class DataBaseStarter {
     /**
      * Tests the database connection by attempting to open and close a connection.
      * Logs success or failure using java.util.logging.
-     *
-     * @return boolean indicating whether the connection test was successful
      */
-    public static boolean testConnection() {
+    public static void testConnection() {
         try (Connection ignored = getConnection()) {
             LOGGER.info("Successfully connected to the database");
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Connection failed", e);
-            return false;
         }
-        return true;
     }
 }
