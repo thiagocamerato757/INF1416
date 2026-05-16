@@ -99,8 +99,8 @@ public class TOTP {
                 user.ifPresent(u -> {
                     u.setErroToken(0);
                     UserDAO.updateUser(u);
-                    Logger.log(4003, u.getUid(), u.getLogin());
-                    Logger.log(4002, u.getUid(), u.getLogin());
+                    Logger.log(4003, u.getUid());
+                    Logger.log(4002, u.getUid());
                 });
                 validated = true;
                 return;
@@ -118,11 +118,11 @@ public class TOTP {
         Optional<UserModel> user = AuthController.getInstance().getUser();
         user.ifPresent(u -> {
             int err = u.getErroToken() + 1;
-            if (err == 1) Logger.log(4004, u.getUid(), u.getLogin());
-            if (err == 2) Logger.log(4005, u.getUid(), u.getLogin());
+            if (err == 1) Logger.log(4004, u.getUid());
+            if (err == 2) Logger.log(4005, u.getUid());
             if (err >= 3) {
-                Logger.log(4006, u.getUid(), u.getLogin());
-                Logger.log(4007, u.getUid(), u.getLogin());
+                Logger.log(4006, u.getUid());
+                Logger.log(4007, u.getUid());
                 u.setBloqueadoAte(Timestamp.valueOf(LocalDateTime.now().plusMinutes(2)));
                 err = 0;
             }

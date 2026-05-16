@@ -20,7 +20,7 @@ public class PassPanel extends JPanel {
 
     public PassPanel() {
         super(new BorderLayout());
-        AuthController.getInstance().getUser().ifPresent(u -> Logger.log(3001, u.getUid(), u.getLogin()));
+        AuthController.getInstance().getUser().ifPresent(u -> Logger.log(3001, u.getUid()));
         setup();
     }
 

@@ -111,7 +111,7 @@ public class UserRegPanel extends JPanel {
             try {
                 privKey = KeyValidator.loadPrivateKey(keyPath, secretPhrase, cert);
             } catch (Exception e) {
-                Logger.log(6005, adminUser.getUid(), keyPath);
+                Logger.log(6005, adminUser.getUid());
                 UIUtils.showError(this, "Erro", "Caminho da chave privada inválido ou frase secreta incorreta.");
                 return;
             }

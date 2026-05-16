@@ -42,7 +42,7 @@ public class QueryVaultPanel extends JPanel {
     public QueryVaultPanel(UserModel user, Runnable onBack) {
         this.user = user;
         this.onBack = onBack;
-        Logger.log(7001, user.getUid(), user.getLogin());
+        Logger.log(7001, user.getUid());
         initComponents();
     }
 
@@ -73,7 +73,7 @@ public class QueryVaultPanel extends JPanel {
         decryptButton.addActionListener(e -> decryptSelected());
         JButton backButton = UIUtils.createButton("Voltar", UIUtils.COLOR_ACCENT);
         backButton.addActionListener(e -> {
-            Logger.log(7002, user.getUid(), user.getLogin());
+            Logger.log(7002, user.getUid());
             if (onBack != null) onBack.run();
         });
         UIUtils.addFormRow(form, 2, "Acoes:", UIUtils.createButtonRow(listButton, decryptButton, backButton));
@@ -100,11 +100,11 @@ public class QueryVaultPanel extends JPanel {
         add(container, BorderLayout.CENTER);
     }
     private void listFiles() {
-        Logger.log(7003, user.getUid(), user.getLogin());
+        Logger.log(7003, user.getUid());
         listModel.clear();
         currentFolder = new File(folderPath.getText().trim());
         if (!currentFolder.isDirectory()) {
-            Logger.log(7004, user.getUid(), folderPath.getText());
+            Logger.log(7004, user.getUid());
             UIUtils.showError(this, "Erro", "Caminho de pasta inválido.");
             return;
         }
@@ -115,15 +115,15 @@ public class QueryVaultPanel extends JPanel {
             byte[] seed = decryptEnvelope(new File(currentFolder, "index.env"), adminPrivateKey);
             byte[] encryptedIndex = Files.readAllBytes(new File(currentFolder, "index.enc").toPath());
             byte[] indexBytes = decryptAes(encryptedIndex, seed);
-            Logger.log(7005, user.getUid(), user.getLogin());
+            Logger.log(7005, user.getUid());
 
             byte[] signature = Files.readAllBytes(new File(currentFolder, "index.asd").toPath());
             if (verifySignature(indexBytes, signature, adminCert.getPublicKey())) {
-                Logger.log(7008, user.getUid(), user.getLogin());
+                Logger.log(7008, user.getUid());
                 UIUtils.showError(this, "Erro", "Assinatura do índice inválida.");
                 return;
             }
-            Logger.log(7006, user.getUid(), user.getLogin());
+            Logger.log(7006, user.getUid());
 
             List<FileEntry> entries = parseIndex(new String(indexBytes, StandardCharsets.UTF_8));
             for (FileEntry entry : entries) {
@@ -131,10 +131,10 @@ public class QueryVaultPanel extends JPanel {
             }
             user.setTotalConsultas(user.getTotalConsultas() + 1);
             UserDAO.updateUser(user);
-            Logger.log(7009, user.getUid(), user.getLogin());
+            Logger.log(7009, user.getUid());
             info.setText(listModel.size() + " arquivo(s) disponível(is).");
         } catch (Exception e) {
-            Logger.log(7007, user.getUid(), e.getMessage());
+            Logger.log(7007, user.getUid());
             UIUtils.showError(this, "Erro", "No foi possível abrir o índice: " + e.getMessage());
         }
     }
@@ -173,7 +173,7 @@ public class QueryVaultPanel extends JPanel {
             Files.write(new File(outDir, entry.secretName).toPath(), plain);
             UIUtils.showSuccess(this, "Sucesso", "Arquivo decriptado em decrypted/" + entry.secretName);
         } catch (Exception e) {
-            Logger.log(7015, user.getUid(), entry.codeName + ": " + e.getMessage());
+            Logger.log(7015, user.getUid(), entry.codeName);
             UIUtils.showError(this, "Erro", "Falha ao decriptar arquivo: " + e.getMessage());
         }
     }

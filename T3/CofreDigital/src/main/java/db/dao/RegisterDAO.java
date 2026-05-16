@@ -14,7 +14,7 @@ public class RegisterDAO {
 
     public static List<RegisterModel> findAllChronological() {
         List<RegisterModel> registers = new ArrayList<>();
-        String sql = "SELECT RID, data_hora, MID, UID, detalhe FROM Registros ORDER BY data_hora ASC, RID ASC";
+        String sql = "SELECT RID, data_hora, MID, UID, fname FROM Registros ORDER BY data_hora ASC, RID ASC";
 
         try (Connection conn = DataBaseStarter.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -27,7 +27,7 @@ public class RegisterDAO {
                 reg.setMID(rs.getInt("MID"));
                 int uid = rs.getInt("UID");
                 reg.setUID(rs.wasNull() ? 0 : uid);
-                reg.setDetail(rs.getString("detalhe"));
+                reg.setFname(rs.getString("fname"));
                 registers.add(reg);
             }
         } catch (SQLException e) {

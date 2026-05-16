@@ -55,8 +55,8 @@ public class PassAuth {
                 u.setErroSenha(0);
                 UserDAO.updateUser(u);
                 TOTP.getInstance().setPass(password);
-                Logger.log(3003, u.getUid(), u.getLogin());
-                Logger.log(3002, u.getUid(), u.getLogin());
+                Logger.log(3003, u.getUid());
+                Logger.log(3002, u.getUid());
                 validated = true;
                 return;
             }
@@ -101,11 +101,11 @@ public class PassAuth {
         Optional<UserModel> user = AuthController.getInstance().getUser();
         user.ifPresent(u -> {
             int err = u.getErroSenha() + 1;
-            if (err == 1) Logger.log(3004, u.getUid(), u.getLogin());
-            if (err == 2) Logger.log(3005, u.getUid(), u.getLogin());
+            if (err == 1) Logger.log(3004, u.getUid());
+            if (err == 2) Logger.log(3005, u.getUid());
             if (err >= 3) {
-                Logger.log(3006, u.getUid(), u.getLogin());
-                Logger.log(3007, u.getUid(), u.getLogin());
+                Logger.log(3006, u.getUid());
+                Logger.log(3007, u.getUid());
                 u.setBloqueadoAte(Timestamp.valueOf(LocalDateTime.now().plusMinutes(2)));
                 err = 0;
             }

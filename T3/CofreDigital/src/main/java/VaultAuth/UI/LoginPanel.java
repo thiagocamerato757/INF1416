@@ -14,7 +14,7 @@ public class LoginPanel extends JPanel {
 
     public LoginPanel() {
         super(new BorderLayout());
-        Logger.log(2001, (String) null);
+        Logger.log(2001);
         setup();
     }
 

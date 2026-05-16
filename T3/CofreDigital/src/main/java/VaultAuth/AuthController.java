@@ -94,7 +94,7 @@ public class AuthController {
         current.setErroToken(0);
         current.setBloqueadoAte(null);
         UserDAO.updateUser(current);
-        Logger.log(1003, current.getUid(), current.getLogin());
+        Logger.log(1003, current.getUid());
         showMenu();
     }
 
@@ -118,7 +118,7 @@ public class AuthController {
     }
 
     public void resetAuth() {
-        user.ifPresent(u -> Logger.log(1004, u.getUid(), u.getLogin()));
+        user.ifPresent(u -> Logger.log(1004, u.getUid()));
         restartAuthentication();
     }
 

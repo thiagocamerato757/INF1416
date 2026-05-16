@@ -191,7 +191,7 @@ public class AdminController {
         }
 
         adminSecretPhrase = secretPhrase;
-        Logger.log(1006, admin.getUid(), "Partida do sistema iniciada para operaÃƒÂ§ÃƒÂ£o normal pelos usuÃƒÂ¡rios.");
+        Logger.log(1006, admin.getUid());
         return null;
     }
 

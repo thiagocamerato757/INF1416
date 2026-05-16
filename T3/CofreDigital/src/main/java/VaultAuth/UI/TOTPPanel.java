@@ -14,7 +14,7 @@ public class TOTPPanel extends JPanel {
 
     public TOTPPanel() {
         super(new BorderLayout());
-        AuthController.getInstance().getUser().ifPresent(u -> Logger.log(4001, u.getUid(), u.getLogin()));
+        AuthController.getInstance().getUser().ifPresent(u -> Logger.log(4001, u.getUid()));
         setup();
     }
 

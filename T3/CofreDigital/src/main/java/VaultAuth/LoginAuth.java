@@ -30,18 +30,18 @@ public class LoginAuth {
         feedbackMessage = "";
         UserModel foundUser = UserDAO.getUserByLogin(email);
         if (foundUser == null) {
-            Logger.log(2005, null, email);
+            Logger.log(2005);
             feedbackMessage = "Invalid email";
             return;
         }
         if (foundUser.getBloqueadoAte() != null && foundUser.getBloqueadoAte().toLocalDateTime().isAfter(LocalDateTime.now())) {
-            Logger.log(2004, foundUser.getUid(), foundUser.getLogin());
+            Logger.log(2004, foundUser.getUid());
             feedbackMessage = "Usuário bloqueado até " + foundUser.getBloqueadoAte().toString();
             return;
         }
         setUser(foundUser);
-        Logger.log(2003, foundUser.getUid(), foundUser.getLogin());
-        Logger.log(2002, foundUser.getUid(), foundUser.getLogin());
+        Logger.log(2003, foundUser.getUid());
+        Logger.log(2002, foundUser.getUid());
         validated = true;
     }
 

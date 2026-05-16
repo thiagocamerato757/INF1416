@@ -17,7 +17,7 @@ public class ExitPanel extends JPanel {
         this.user = user;
         this.onBack = onBack;
         this.onEndSession = onEndSession;
-        Logger.log(8001, user.getUid(), user.getLogin());
+        Logger.log(8001, user.getUid());
         initComponents();
     }
 
@@ -42,19 +42,19 @@ public class ExitPanel extends JPanel {
 
         JButton session = UIUtils.createButton("Encerrar Sessão", UIUtils.COLOR_WARNING);
         session.addActionListener(e -> {
-            Logger.log(8002, user.getUid(), user.getLogin());
+            Logger.log(8002, user.getUid());
             if (onEndSession != null) onEndSession.run();
         });
         JButton system = UIUtils.createButton("Encerrar Sistema", UIUtils.COLOR_DANGER);
         system.addActionListener(e -> {
-            Logger.log(8003, user.getUid(), user.getLogin());
-            Logger.log(1002, user.getUid(), user.getLogin());
+            Logger.log(8003, user.getUid());
+            Logger.log(1002, user.getUid());
             AdminController.clearAdminSecretPhrase();
             System.exit(0);
         });
         JButton back = UIUtils.createButton("Voltar", UIUtils.COLOR_ACCENT);
         back.addActionListener(e -> {
-            Logger.log(8004, user.getUid(), user.getLogin());
+            Logger.log(8004, user.getUid());
             if (onBack != null) onBack.run();
         });
         card.add(UIUtils.createButtonRow(session, system, back), BorderLayout.SOUTH);

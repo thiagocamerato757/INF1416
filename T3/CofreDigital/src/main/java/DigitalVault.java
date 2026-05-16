@@ -17,7 +17,7 @@ public class DigitalVault {
         DataBaseStarter.testConnection();
 
         SwingUtilities.invokeLater(() -> {
-            Logger.log(1001, "Sistema iniciado.");
+            Logger.log(1001);
 
             if (UserDAO.checkAnyUser()) {
                 VaultAuth.UI.AdminLoginFrame loginFrame = new VaultAuth.UI.AdminLoginFrame();
